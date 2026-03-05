@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# .idea
+/.idea
+
+# vscode
+.vscode/
+!.vscode/settings.json     ← shared editor settings (tab size, formatter, etc.)
+!.vscode/extensions.json   ← recommended extensions list
+!.vscode/launch.json       ← shared debug configs
+!.vscode/tasks.json        ← shared build/run tasks
