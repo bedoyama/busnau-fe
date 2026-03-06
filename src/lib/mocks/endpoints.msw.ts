@@ -355,4 +355,5 @@ export const getOpenAPIDefinitionMock = () => [
   getDeleteTaskMockHandler(),
   getGetTasksByUserIdMockHandler(),
   getGetTasksByUserIdAndDateRangeMockHandler(),
-  getGetTasksByCompletedMockHandler()]
+  getGetTasksByCompletedMockHandler()
+]

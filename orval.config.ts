@@ -5,9 +5,9 @@ module.exports = {
     input: './openapi/swagger.json',
     output: {
       mode: 'split',
-      target: './src/api/generated/endpoints.ts',
-      schemas: './lib/mocks/generated/model',
-      client: 'axios',
+      target: './openapi/generated/endpoints.ts',
+      schemas: './openapi/generated/model',
+      client: 'fetch',
       mock: true,
       override: {
         mock: {

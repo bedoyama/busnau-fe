@@ -51,4 +51,4 @@ next-env.d.ts
 !.vscode/tasks.json        ← shared build/run tasks
 
 # generated files
-/src/api/generated
+/openapi/generated

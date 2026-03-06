@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { userService } from '@/api/userService';
 
 export default function TestPage() {
   // Health Endpoint State
@@ -12,6 +13,11 @@ export default function TestPage() {
   const [usersData, setUsersData] = useState<unknown>(null);
   const [usersLoading, setUsersLoading] = useState(true);
   const [usersError, setUsersError] = useState<string | null>(null);
+
+  // UserService Endpoint State
+  const [userServiceData, setUserServiceData] = useState<unknown>(null);
+  const [userServiceLoading, setUserServiceLoading] = useState(true);
+  const [userServiceError, setUserServiceError] = useState<string | null>(null);
 
   // Fetch Health
   useEffect(() => {
@@ -49,6 +55,21 @@ export default function TestPage() {
         setUsersError(err instanceof Error ? err.message : 'An unknown error occurred');
         setUsersLoading(false);
       });
+  }, []);
+
+  // Fetch Users via UserService
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const [data, error] = await userService.getAllUsers();
+      if (error) {
+        setUserServiceError(error);
+      } else {
+        setUserServiceData(data);
+      }
+      setUserServiceLoading(false);
+    };
+
+    fetchUsers();
   }, []);
 
   return (
@@ -109,6 +130,37 @@ export default function TestPage() {
           <div className="bg-zinc-50 dark:bg-black p-4 rounded overflow-auto border border-zinc-200 dark:border-zinc-800 max-h-96">
             <pre className="text-sm font-mono text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap">
               {JSON.stringify(usersData, null, 2)}
+            </pre>
+          </div>
+        )}
+      </div>
+
+      {/* UserService Check Card */}
+      <div className="w-full max-w-md p-6 border rounded-lg shadow-sm bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
+        <h2 className="text-xl font-semibold mb-4">Service: userService.getAllUsers()</h2>
+
+        {userServiceLoading && (
+          <div className="animate-pulse flex space-x-4">
+            <div className="flex-1 space-y-4 py-1">
+              <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-3/4"></div>
+              <div className="space-y-2">
+                <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded"></div>
+                <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-5/6"></div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {userServiceError && (
+          <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
+            <span className="font-medium">Error:</span> {userServiceError}
+          </div>
+        )}
+
+        {!!userServiceData && !userServiceLoading && !userServiceError && (
+          <div className="bg-zinc-50 dark:bg-black p-4 rounded overflow-auto border border-zinc-200 dark:border-zinc-800 max-h-96">
+            <pre className="text-sm font-mono text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap">
+              {JSON.stringify(userServiceData, null, 2)}
             </pre>
           </div>
         )}
