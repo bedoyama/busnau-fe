@@ -49,3 +49,6 @@ next-env.d.ts
 !.vscode/extensions.json   ← recommended extensions list
 !.vscode/launch.json       ← shared debug configs
 !.vscode/tasks.json        ← shared build/run tasks
+
+# generated files
+/src/api/generated

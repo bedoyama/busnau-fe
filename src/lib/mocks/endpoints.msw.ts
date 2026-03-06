@@ -10,6 +10,7 @@ import {
 
 import {
   HttpResponse,
+  delay,
   http
 } from 'msw';
 import type {
@@ -28,14 +29,17 @@ export const getGetAllUsersResponseMock = (): User[] => (Array.from({
     max: 10
   })
 }, (_, i) => i + 1).map(() => ({
-  id: faker.helpers.arrayElement([faker.number.int(), undefined]),
-  username: faker.string.alpha({length: {min: 10, max: 20}}),
+  id: (() => faker.number.int({min: 1, max: 1000000}))(),
+  username: faker.string.alpha({length: {min: 8, max: 32}}),
   role: faker.helpers.arrayElement(['ADMIN', 'USER'] as const)
 })))
 
 export const getCreateUserResponseMock = (overrideResponse: Partial<Extract<User, object>> = {}): User => ({
-  id: faker.helpers.arrayElement([faker.number.int(), undefined]),
-  username: faker.string.alpha({length: {min: 10, max: 20}}),
+  id: (() => faker.number.int({
+    min: 1,
+    max: 1000000
+  }))(),
+  username: faker.string.alpha({length: {min: 8, max: 32}}),
   role: faker.helpers.arrayElement(['ADMIN', 'USER'] as const), ...overrideResponse
 })
 
@@ -45,18 +49,21 @@ export const getGetAllTasksResponseMock = (): Task[] => (Array.from({
     max: 10
   })
 }, (_, i) => i + 1).map(() => ({
-  id: faker.helpers.arrayElement([faker.number.int(), undefined]),
-  title: faker.string.alpha({length: {min: 10, max: 20}}),
-  description: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]),
+  id: (() => faker.number.int({min: 1, max: 1000000}))(),
+  title: faker.string.alpha({length: {min: 8, max: 32}}),
+  description: faker.helpers.arrayElement([faker.string.alpha({length: {min: 8, max: 32}}), undefined]),
   dueDate: faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), undefined]),
   completed: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
   userId: faker.helpers.arrayElement([faker.number.int(), undefined])
 })))
 
 export const getCreateTaskResponseMock = (overrideResponse: Partial<Extract<Task, object>> = {}): Task => ({
-  id: faker.helpers.arrayElement([faker.number.int(), undefined]),
-  title: faker.string.alpha({length: {min: 10, max: 20}}),
-  description: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]),
+  id: (() => faker.number.int({
+    min: 1,
+    max: 1000000
+  }))(),
+  title: faker.string.alpha({length: {min: 8, max: 32}}),
+  description: faker.helpers.arrayElement([faker.string.alpha({length: {min: 8, max: 32}}), undefined]),
   dueDate: faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), undefined]),
   completed: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
   userId: faker.helpers.arrayElement([faker.number.int(), undefined]), ...overrideResponse
@@ -67,21 +74,30 @@ export const getRefreshTokenResponseMock = (): string => (faker.word.sample())
 export const getAuthenticateUserResponseMock = (): string => (faker.word.sample())
 
 export const getGetUserByIdResponseMock = (overrideResponse: Partial<Extract<User, object>> = {}): User => ({
-  id: faker.helpers.arrayElement([faker.number.int(), undefined]),
-  username: faker.string.alpha({length: {min: 10, max: 20}}),
+  id: (() => faker.number.int({
+    min: 1,
+    max: 1000000
+  }))(),
+  username: faker.string.alpha({length: {min: 8, max: 32}}),
   role: faker.helpers.arrayElement(['ADMIN', 'USER'] as const), ...overrideResponse
 })
 
 export const getGetUserByUsernameResponseMock = (overrideResponse: Partial<Extract<User, object>> = {}): User => ({
-  id: faker.helpers.arrayElement([faker.number.int(), undefined]),
-  username: faker.string.alpha({length: {min: 10, max: 20}}),
+  id: (() => faker.number.int({
+    min: 1,
+    max: 1000000
+  }))(),
+  username: faker.string.alpha({length: {min: 8, max: 32}}),
   role: faker.helpers.arrayElement(['ADMIN', 'USER'] as const), ...overrideResponse
 })
 
 export const getGetTaskByIdResponseMock = (overrideResponse: Partial<Extract<Task, object>> = {}): Task => ({
-  id: faker.helpers.arrayElement([faker.number.int(), undefined]),
-  title: faker.string.alpha({length: {min: 10, max: 20}}),
-  description: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]),
+  id: (() => faker.number.int({
+    min: 1,
+    max: 1000000
+  }))(),
+  title: faker.string.alpha({length: {min: 8, max: 32}}),
+  description: faker.helpers.arrayElement([faker.string.alpha({length: {min: 8, max: 32}}), undefined]),
   dueDate: faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), undefined]),
   completed: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
   userId: faker.helpers.arrayElement([faker.number.int(), undefined]), ...overrideResponse
@@ -93,9 +109,9 @@ export const getGetTasksByUserIdResponseMock = (): Task[] => (Array.from({
     max: 10
   })
 }, (_, i) => i + 1).map(() => ({
-  id: faker.helpers.arrayElement([faker.number.int(), undefined]),
-  title: faker.string.alpha({length: {min: 10, max: 20}}),
-  description: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]),
+  id: (() => faker.number.int({min: 1, max: 1000000}))(),
+  title: faker.string.alpha({length: {min: 8, max: 32}}),
+  description: faker.helpers.arrayElement([faker.string.alpha({length: {min: 8, max: 32}}), undefined]),
   dueDate: faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), undefined]),
   completed: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
   userId: faker.helpers.arrayElement([faker.number.int(), undefined])
@@ -107,9 +123,9 @@ export const getGetTasksByUserIdAndDateRangeResponseMock = (): Task[] => (Array.
     max: 10
   })
 }, (_, i) => i + 1).map(() => ({
-  id: faker.helpers.arrayElement([faker.number.int(), undefined]),
-  title: faker.string.alpha({length: {min: 10, max: 20}}),
-  description: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]),
+  id: (() => faker.number.int({min: 1, max: 1000000}))(),
+  title: faker.string.alpha({length: {min: 8, max: 32}}),
+  description: faker.helpers.arrayElement([faker.string.alpha({length: {min: 8, max: 32}}), undefined]),
   dueDate: faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), undefined]),
   completed: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
   userId: faker.helpers.arrayElement([faker.number.int(), undefined])
@@ -121,9 +137,9 @@ export const getGetTasksByCompletedResponseMock = (): Task[] => (Array.from({
     max: 10
   })
 }, (_, i) => i + 1).map(() => ({
-  id: faker.helpers.arrayElement([faker.number.int(), undefined]),
-  title: faker.string.alpha({length: {min: 10, max: 20}}),
-  description: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]),
+  id: (() => faker.number.int({min: 1, max: 1000000}))(),
+  title: faker.string.alpha({length: {min: 8, max: 32}}),
+  description: faker.helpers.arrayElement([faker.string.alpha({length: {min: 8, max: 32}}), undefined]),
   dueDate: faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), undefined]),
   completed: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
   userId: faker.helpers.arrayElement([faker.number.int(), undefined])
@@ -132,6 +148,7 @@ export const getGetTasksByCompletedResponseMock = (): Task[] => (Array.from({
 
 export const getGetAllUsersMockHandler = (overrideResponse?: User[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<User[]> | User[]), options?: RequestHandlerOptions) => {
   return http.get('*/api/users', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+    await delay((() => faker.number.int({min: 200, max: 800}))());
 
 
     return HttpResponse.json(overrideResponse !== undefined
@@ -145,6 +162,7 @@ export const getGetAllUsersMockHandler = (overrideResponse?: User[] | ((info: Pa
 
 export const getCreateUserMockHandler = (overrideResponse?: User | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<User> | User), options?: RequestHandlerOptions) => {
   return http.post('*/api/users', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+    await delay((() => faker.number.int({min: 200, max: 800}))());
 
 
     return HttpResponse.json(overrideResponse !== undefined
@@ -158,6 +176,7 @@ export const getCreateUserMockHandler = (overrideResponse?: User | ((info: Param
 
 export const getGetAllTasksMockHandler = (overrideResponse?: Task[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Task[]> | Task[]), options?: RequestHandlerOptions) => {
   return http.get('*/api/tasks', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+    await delay((() => faker.number.int({min: 200, max: 800}))());
 
 
     return HttpResponse.json(overrideResponse !== undefined
@@ -171,6 +190,7 @@ export const getGetAllTasksMockHandler = (overrideResponse?: Task[] | ((info: Pa
 
 export const getCreateTaskMockHandler = (overrideResponse?: Task | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<Task> | Task), options?: RequestHandlerOptions) => {
   return http.post('*/api/tasks', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+    await delay((() => faker.number.int({min: 200, max: 800}))());
 
 
     return HttpResponse.json(overrideResponse !== undefined
@@ -184,6 +204,7 @@ export const getCreateTaskMockHandler = (overrideResponse?: Task | ((info: Param
 
 export const getRefreshTokenMockHandler = (overrideResponse?: string | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<string> | string), options?: RequestHandlerOptions) => {
   return http.post('*/api/auth/refresh', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+    await delay((() => faker.number.int({min: 200, max: 800}))());
 
 
     return HttpResponse.json(overrideResponse !== undefined
@@ -197,6 +218,7 @@ export const getRefreshTokenMockHandler = (overrideResponse?: string | ((info: P
 
 export const getAuthenticateUserMockHandler = (overrideResponse?: string | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<string> | string), options?: RequestHandlerOptions) => {
   return http.post('*/api/auth/login', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+    await delay((() => faker.number.int({min: 200, max: 800}))());
 
 
     return HttpResponse.json(overrideResponse !== undefined
@@ -210,6 +232,7 @@ export const getAuthenticateUserMockHandler = (overrideResponse?: string | ((inf
 
 export const getGetUserByIdMockHandler = (overrideResponse?: User | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<User> | User), options?: RequestHandlerOptions) => {
   return http.get('*/api/users/:id', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+    await delay((() => faker.number.int({min: 200, max: 800}))());
 
 
     return HttpResponse.json(overrideResponse !== undefined
@@ -223,6 +246,7 @@ export const getGetUserByIdMockHandler = (overrideResponse?: User | ((info: Para
 
 export const getDeleteUserMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
   return http.delete('*/api/users/:id', async (info: Parameters<Parameters<typeof http.delete>[1]>[0]) => {
+    await delay((() => faker.number.int({min: 200, max: 800}))());
     if (typeof overrideResponse === 'function') {
       await overrideResponse(info);
     }
@@ -236,6 +260,7 @@ export const getDeleteUserMockHandler = (overrideResponse?: void | ((info: Param
 
 export const getGetUserByUsernameMockHandler = (overrideResponse?: User | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<User> | User), options?: RequestHandlerOptions) => {
   return http.get('*/api/users/username/:username', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+    await delay((() => faker.number.int({min: 200, max: 800}))());
 
 
     return HttpResponse.json(overrideResponse !== undefined
@@ -249,6 +274,7 @@ export const getGetUserByUsernameMockHandler = (overrideResponse?: User | ((info
 
 export const getGetTaskByIdMockHandler = (overrideResponse?: Task | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Task> | Task), options?: RequestHandlerOptions) => {
   return http.get('*/api/tasks/:id', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+    await delay((() => faker.number.int({min: 200, max: 800}))());
 
 
     return HttpResponse.json(overrideResponse !== undefined
@@ -262,6 +288,7 @@ export const getGetTaskByIdMockHandler = (overrideResponse?: Task | ((info: Para
 
 export const getDeleteTaskMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
   return http.delete('*/api/tasks/:id', async (info: Parameters<Parameters<typeof http.delete>[1]>[0]) => {
+    await delay((() => faker.number.int({min: 200, max: 800}))());
     if (typeof overrideResponse === 'function') {
       await overrideResponse(info);
     }
@@ -275,6 +302,7 @@ export const getDeleteTaskMockHandler = (overrideResponse?: void | ((info: Param
 
 export const getGetTasksByUserIdMockHandler = (overrideResponse?: Task[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Task[]> | Task[]), options?: RequestHandlerOptions) => {
   return http.get('*/api/tasks/user/:userId', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+    await delay((() => faker.number.int({min: 200, max: 800}))());
 
 
     return HttpResponse.json(overrideResponse !== undefined
@@ -288,6 +316,7 @@ export const getGetTasksByUserIdMockHandler = (overrideResponse?: Task[] | ((inf
 
 export const getGetTasksByUserIdAndDateRangeMockHandler = (overrideResponse?: Task[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Task[]> | Task[]), options?: RequestHandlerOptions) => {
   return http.get('*/api/tasks/user/:userId/date-range', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+    await delay((() => faker.number.int({min: 200, max: 800}))());
 
 
     return HttpResponse.json(overrideResponse !== undefined
@@ -301,6 +330,7 @@ export const getGetTasksByUserIdAndDateRangeMockHandler = (overrideResponse?: Ta
 
 export const getGetTasksByCompletedMockHandler = (overrideResponse?: Task[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<Task[]> | Task[]), options?: RequestHandlerOptions) => {
   return http.get('*/api/tasks/completed/:completed', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+    await delay((() => faker.number.int({min: 200, max: 800}))());
 
 
     return HttpResponse.json(overrideResponse !== undefined
