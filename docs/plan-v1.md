@@ -161,8 +161,8 @@ Non-goals for v1: full design system, OAuth, offline-first, native apps.
 
 ### Commit 4.2 — `chore: drop unused axios; standardize on pnpm`
 
-- Remove unused dependency
-- README: pnpm only; document dual mode (link LOCAL.md)
+- Remove unused `axios` (HTTP is ky only)
+- README: pnpm-only + stack note
 
 ### Commit 4.3 — `chore: replace create-next-app home with app shell`
 
