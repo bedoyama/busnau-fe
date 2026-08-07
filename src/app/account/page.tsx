@@ -19,7 +19,7 @@ const passwordSchema = z
   });
 
 function AccountContent() {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, logoutAll, busy } = useAuth();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -27,6 +27,14 @@ function AccountContent() {
   const [formError, setFormError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  async function onLogoutAll() {
+    const ok = window.confirm(
+      "Sign out of every device? This revokes all refresh tokens for your account."
+    );
+    if (!ok) return;
+    await logoutAll();
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -207,6 +215,24 @@ function AccountContent() {
               {submitting ? "Updating…" : "Update password"}
             </button>
           </form>
+        </section>
+
+        <section className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+            Sessions
+          </h2>
+          <p className="mt-1 text-sm text-zinc-500">
+            POST /api/auth/logout-all — revokes every active refresh token for
+            your account. Use this if a device is lost or you shared credentials.
+          </p>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void onLogoutAll()}
+            className="mt-4 rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-60 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950/40"
+          >
+            {busy ? "Signing out…" : "Log out everywhere"}
+          </button>
         </section>
       </main>
     </div>

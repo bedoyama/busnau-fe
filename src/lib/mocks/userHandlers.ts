@@ -10,6 +10,10 @@ import {
   setSessionUser,
 } from "./userStore";
 
+function clearMockSession(): void {
+  setSessionUser(null);
+}
+
 function parsePage(url: URL): { page: number; size: number } {
   const page = Number(url.searchParams.get("page") ?? "0");
   const size = Number(url.searchParams.get("size") ?? "20");
@@ -45,6 +49,18 @@ export const userHandlers = [
       username: user.username,
       role: user.role,
     });
+  }),
+
+  // Single-device logout (body optional for mock resilience)
+  http.post("*/api/auth/logout", () => {
+    clearMockSession();
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  // All devices — requires session in real API; mock always 204 + clear
+  http.post("*/api/auth/logout-all", () => {
+    clearMockSession();
+    return new HttpResponse(null, { status: 204 });
   }),
 
   http.get("*/api/users/me", () => {

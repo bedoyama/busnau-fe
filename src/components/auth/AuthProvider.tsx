@@ -32,7 +32,10 @@ type AuthContextValue = {
   login: (body: LoginRequest) => Promise<string | null>;
   /** Register, then login. Returns error message or null on success. */
   register: (body: LoginRequest) => Promise<string | null>;
+  /** Revoke current refresh token and clear local session. */
   logout: () => Promise<void>;
+  /** Revoke all refresh tokens for this user and clear local session. */
+  logoutAll: () => Promise<void>;
   refreshUser: () => Promise<void>;
 };
 
@@ -156,17 +159,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [applyUser]
   );
 
+  const finishSignedOut = useCallback(async () => {
+    clearSession();
+    applyAnonymous();
+    setBusy(false);
+    router.push("/login");
+  }, [applyAnonymous, router]);
+
   const logout = useCallback(async () => {
     setBusy(true);
     const refreshToken = getRefreshToken();
     if (refreshToken) {
       await authService.logout({ refreshToken });
     }
-    clearSession();
-    applyAnonymous();
-    setBusy(false);
-    router.push("/login");
-  }, [applyAnonymous, router]);
+    await finishSignedOut();
+  }, [finishSignedOut]);
+
+  const logoutAll = useCallback(async () => {
+    setBusy(true);
+    // Best-effort: still clear local session if the request fails (e.g. expired access).
+    await authService.logoutAll();
+    await finishSignedOut();
+  }, [finishSignedOut]);
 
   const value = useMemo(
     () => ({
@@ -176,9 +190,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       register,
       logout,
+      logoutAll,
       refreshUser,
     }),
-    [user, status, busy, login, register, logout, refreshUser]
+    [user, status, busy, login, register, logout, logoutAll, refreshUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

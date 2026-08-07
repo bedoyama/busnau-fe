@@ -20,4 +20,10 @@ export const authService = {
     handleApiCall(
       api.post("api/auth/logout", { json: body }).then(() => undefined as void)
     ),
+
+  /** Revoke every refresh token for the authenticated user (Bearer required). */
+  logoutAll: () =>
+    handleApiCall(
+      api.post("api/auth/logout-all").then(() => undefined as void)
+    ),
 };

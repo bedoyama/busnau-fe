@@ -11,6 +11,8 @@ const API_PREFIX = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 /** Paths that must not attach Bearer / must not trigger refresh retry. */
 function isAuthBootstrapPath(url: string): boolean {
+  // logout-all requires a valid access token (substring match would exclude it).
+  if (url.includes("/api/auth/logout-all")) return false;
   return (
     url.includes("/api/auth/login") ||
     url.includes("/api/auth/refresh") ||
