@@ -1,5 +1,6 @@
 import { api } from "./client";
 import { handleApiCall } from "./utils";
+import type { ChangePasswordRequest } from "@/lib/model/changePasswordRequest";
 import type { GetAllUsersParams } from "@/lib/model/getAllUsersParams";
 import type { PageUser } from "@/lib/model/pageUser";
 import type { User } from "@/lib/model/user";
@@ -39,4 +40,11 @@ export const userService = {
 
   getCurrentUser: () =>
     handleApiCall(api.get("api/users/me").json<User>()),
+
+  changePassword: (body: ChangePasswordRequest) =>
+    handleApiCall(
+      api
+        .post("api/users/me/password", { json: body })
+        .then(() => undefined as void)
+    ),
 };

@@ -135,9 +135,10 @@ Non-goals for v1: full design system, OAuth, offline-first, native apps.
 
 ### Commit 3.1 — `feat(account): profile and change password`
 
-- Show `/me`
-- `POST /api/users/me/password`
-- MSW
+- `/account` shows profile from auth session (`/me`)
+- Change password form → `POST /api/users/me/password`
+- Shared `AppHeader` nav (Tasks, Account, Admin if ADMIN)
+- MSW: Orval change-password handler
 
 ### Commit 3.2 — `feat(admin): user list (paged, ADMIN only)`
 
