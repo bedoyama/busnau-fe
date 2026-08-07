@@ -71,10 +71,10 @@ Non-goals for v1: full design system, OAuth, offline-first, native apps.
 
 ### Commit 1.1 — `feat(api): client auth storage and error mapping`
 
-- Store/read `accessToken` (+ optional `refreshToken`)
-- Map backend `{ error, details }` in `handleApiCall`
-- On 401: attempt refresh once, then clear session / redirect to login
-- Retry policy: keep non-POST retries; never retry login/register blindly
+- `authStorage.ts`: access (`token`) + `refreshToken`
+- `handleApiCall` maps `{ error, details }`
+- ky client: 401 → single-flight refresh → one retry; else clear + `/login`
+- Retry: GET/PUT/DELETE only (no POST auto-retry)
 
 ### Commit 1.2 — `feat(auth): login and register pages`
 
