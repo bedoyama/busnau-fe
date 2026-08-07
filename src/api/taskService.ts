@@ -3,12 +3,16 @@ import { handleApiCall } from "./utils";
 import type { CreateTaskRequest } from "@/lib/model/createTaskRequest";
 import type { GetAllTasksParams } from "@/lib/model/getAllTasksParams";
 import type { GetTasksByCompletedParams } from "@/lib/model/getTasksByCompletedParams";
+import type { GetTasksByUserIdAndDateRangeParams } from "@/lib/model/getTasksByUserIdAndDateRangeParams";
 import type { PageTask } from "@/lib/model/pageTask";
 import type { Task } from "@/lib/model/task";
 import type { UpdateTaskRequest } from "@/lib/model/updateTaskRequest";
 
 function toSearchParams(
-  params?: GetAllTasksParams | GetTasksByCompletedParams
+  params?:
+    | GetAllTasksParams
+    | GetTasksByCompletedParams
+    | Omit<GetTasksByUserIdAndDateRangeParams, "start" | "end">
 ): Record<string, string | number> | undefined {
   if (!params) return undefined;
   const out: Record<string, string | number> = {};
@@ -45,18 +49,23 @@ export const taskService = {
         .json<PageTask>()
     ),
 
-  /** Non-paged list for a user between due dates (inclusive). */
+  /** Paged tasks for a user between due dates (inclusive). */
   getTasksByUserIdAndDateRange: (
     userId: number,
     start: string,
-    end: string
+    end: string,
+    params?: Omit<GetTasksByUserIdAndDateRangeParams, "start" | "end">
   ) =>
     handleApiCall(
       api
         .get(`api/tasks/user/${userId}/date-range`, {
-          searchParams: { start, end },
+          searchParams: {
+            start,
+            end,
+            ...toSearchParams(params),
+          },
         })
-        .json<Task[]>()
+        .json<PageTask>()
     ),
 
   getTaskById: (id: number) =>

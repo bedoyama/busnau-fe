@@ -41,7 +41,10 @@ export const taskHandlers = [
         { status: 400 }
       );
     }
-    return HttpResponse.json(listByUserAndDateRange(userId, start, end));
+    const { page, size } = parsePage(url);
+    return HttpResponse.json(
+      listByUserAndDateRange(userId, start, end, page, size)
+    );
   }),
 
   http.get("*/api/tasks/:id", ({ params }) => {

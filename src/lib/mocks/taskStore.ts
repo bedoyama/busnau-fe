@@ -139,18 +139,39 @@ export function deleteTask(id: number): boolean {
 }
 
 /**
- * Date-range list. Real API scopes by userId; mock also includes tasks with
- * matching dueDate even if userId differs (faker login ids vs seed userId=1).
+ * Paged date-range list. Real API scopes by userId; mock also includes tasks
+ * with matching dueDate even if userId differs (faker login ids vs seed userId=1).
  */
 export function listByUserAndDateRange(
   userId: number,
   start: string,
-  end: string
-): Task[] {
+  end: string,
+  page: number,
+  size: number
+): PageTask {
   seedIfNeeded();
-  return tasks.filter((t) => {
+  const filtered = tasks.filter((t) => {
     if (!t.dueDate) return false;
     if (t.dueDate < start || t.dueDate > end) return false;
     return t.userId === userId || t.userId === 1;
   });
+  const safePage = Math.max(0, page);
+  const safeSize = Math.max(1, size);
+  const totalElements = filtered.length;
+  const totalPages =
+    totalElements === 0 ? 0 : Math.ceil(totalElements / safeSize);
+  const startIdx = safePage * safeSize;
+  const content = filtered.slice(startIdx, startIdx + safeSize);
+
+  return {
+    content,
+    totalElements,
+    totalPages,
+    size: safeSize,
+    number: safePage,
+    numberOfElements: content.length,
+    first: safePage === 0,
+    last: totalPages === 0 || safePage >= totalPages - 1,
+    empty: content.length === 0,
+  };
 }

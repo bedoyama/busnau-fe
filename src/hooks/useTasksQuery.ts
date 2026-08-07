@@ -23,17 +23,17 @@ export const taskKeys = {
 
 const PAGE_SIZE = 10;
 
-function pageFromList(tasks: Task[]): PageTask {
+/** Status filter is client-side on the current page (date-range API has no completed param). */
+function filterPageByStatus(page: PageTask, status: StatusFilter): PageTask {
+  if (status === "all") return page;
+  const content = (page.content ?? []).filter((t: Task) =>
+    status === "open" ? !t.completed : t.completed
+  );
   return {
-    content: tasks,
-    totalElements: tasks.length,
-    totalPages: tasks.length === 0 ? 0 : 1,
-    size: tasks.length || PAGE_SIZE,
-    number: 0,
-    numberOfElements: tasks.length,
-    first: true,
-    last: true,
-    empty: tasks.length === 0,
+    ...page,
+    content,
+    numberOfElements: content.length,
+    empty: content.length === 0,
   };
 }
 
@@ -57,16 +57,14 @@ async function fetchTasksPage(input: {
     if (userId == null) {
       throw new Error("Signed-in user id required for date range filter");
     }
-    const [list, err] = await taskService.getTasksByUserIdAndDateRange(
+    const [result, err] = await taskService.getTasksByUserIdAndDateRange(
       userId,
       startDate,
-      endDate
+      endDate,
+      { page, size }
     );
     if (err) throw new Error(err);
-    let tasks = list ?? [];
-    if (status === "open") tasks = tasks.filter((t) => !t.completed);
-    if (status === "done") tasks = tasks.filter((t) => t.completed);
-    return pageFromList(tasks);
+    return filterPageByStatus(result!, status);
   }
 
   if (status === "open") {
