@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# busnau-fe
 
-## Getting Started
+Next.js frontend for the [busnau-api](../busnau-api) task manager.
 
-First, run the development server:
+## Docs
+
+| Doc | Purpose |
+|-----|---------|
+| [docs/LOCAL.md](./docs/LOCAL.md) | Run locally with **MSW mocks** or the **real backend** on the same machine |
+| [docs/plan-v1.md](./docs/plan-v1.md) | FE roadmap (auth, tasks, admin) with dual-mode / mock checklist |
+
+## Quick start (mock mode — default)
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
+# http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Mocks are **on by default in development**. No Java or Postgres required.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Real backend (same machine)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Start API (`../busnau-api`) on `http://localhost:8080`.
+2. Create `.env.local`:
 
-## Learn More
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:8080
+NEXT_PUBLIC_USE_MOCKS=false
+```
 
-To learn more about Next.js, take a look at the following resources:
+3. Restart `pnpm dev`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+See [docs/LOCAL.md](./docs/LOCAL.md) for CORS notes, env table, and regenerating mocks when the API changes.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Scripts
 
-## Deploy on Vercel
+```bash
+pnpm dev            # Next dev server
+pnpm build
+pnpm lint
+pnpm generate:api   # Orval from openapi/swagger.json → models + MSW
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Next.js 16 / React 19
+- ky HTTP client → `NEXT_PUBLIC_API_URL`
+- MSW mock backend (Orval-generated handlers)
+- React Query installed (wiring in plan Phase 4)
+- Zod + Tailwind / shadcn-oriented UI setup
