@@ -145,10 +145,10 @@ Non-goals for v1: full design system, OAuth, offline-first, native apps.
 - `RequireAdmin` + `/admin/users` paged table
 - Stable MSW user store; login as `admin` → ADMIN (others → USER)
 
-### Commit 3.3 (optional) — `feat(admin): create user with role`
+### Commit 3.3 — `feat(admin): create user with role`
 
-- ADMIN-only create with role ADMIN/USER
-- MSW
+- `CreateUserForm` on `/admin/users` (USER | ADMIN)
+- MSW: userStore create
 
 ---
 

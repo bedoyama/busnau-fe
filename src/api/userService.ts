@@ -1,6 +1,7 @@
 import { api } from "./client";
 import { handleApiCall } from "./utils";
 import type { ChangePasswordRequest } from "@/lib/model/changePasswordRequest";
+import type { CreateUserRequest } from "@/lib/model/createUserRequest";
 import type { GetAllUsersParams } from "@/lib/model/getAllUsersParams";
 import type { PageUser } from "@/lib/model/pageUser";
 import type { User } from "@/lib/model/user";
@@ -47,4 +48,8 @@ export const userService = {
         .post("api/users/me/password", { json: body })
         .then(() => undefined as void)
     ),
+
+  /** ADMIN create (or public register without role). */
+  createUser: (body: CreateUserRequest) =>
+    handleApiCall(api.post("api/users", { json: body }).json<User>()),
 };

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { userService } from "@/api/userService";
+import { CreateUserForm } from "@/components/admin/CreateUserForm";
 import { RequireAdmin } from "@/components/auth/RequireAdmin";
 import { AppHeader } from "@/components/layout/AppHeader";
 import type { PageUser } from "@/lib/model/pageUser";
@@ -10,6 +11,7 @@ const PAGE_SIZE = 10;
 
 function AdminUsersContent() {
   const [page, setPage] = useState(0);
+  const [reloadToken, setReloadToken] = useState(0);
   const [data, setData] = useState<PageUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,11 +38,17 @@ function AdminUsersContent() {
     return () => {
       cancelled = true;
     };
-  }, [page]);
+  }, [page, reloadToken]);
 
   function goToPage(next: number) {
     setLoading(true);
     setPage(next);
+  }
+
+  function refreshList() {
+    setLoading(true);
+    setPage(0);
+    setReloadToken((n) => n + 1);
   }
 
   const content = data?.content ?? [];
@@ -51,6 +59,8 @@ function AdminUsersContent() {
     <div className="min-h-screen bg-zinc-50 dark:bg-black">
       <AppHeader title="Admin · Users" />
       <main className="mx-auto max-w-4xl px-4 py-8">
+        <CreateUserForm onCreated={refreshList} />
+
         <div className="mb-3 flex items-baseline justify-between gap-4">
           <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
             All users
