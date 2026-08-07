@@ -171,8 +171,7 @@ Non-goals for v1: full design system, OAuth, offline-first, native apps.
 
 ### Commit 4.4 — `docs: README project overview`
 
-- Architecture diagram: Next ↔ MSW or busnau-api
-- Env table, generate:api, link to plan + LOCAL
+- Architecture diagram, layer table, env, routes, generate:api
 
 ---
 
