@@ -1,55 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { userService } from "@/api/userService";
+import { useState } from "react";
 import { CreateUserForm } from "@/components/admin/CreateUserForm";
 import { RequireAdmin } from "@/components/auth/RequireAdmin";
 import { AppHeader } from "@/components/layout/AppHeader";
-import type { PageUser } from "@/lib/model/pageUser";
+import { useUsersQuery } from "@/hooks/useUsersQuery";
 
 const PAGE_SIZE = 10;
 
 function AdminUsersContent() {
   const [page, setPage] = useState(0);
-  const [reloadToken, setReloadToken] = useState(0);
-  const [data, setData] = useState<PageUser | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const usersQuery = useUsersQuery(page, PAGE_SIZE);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    void (async () => {
-      const [result, err] = await userService.getAllUsers({
-        page,
-        size: PAGE_SIZE,
-      });
-      if (cancelled) return;
-      if (err) {
-        setError(err);
-        setData(null);
-      } else {
-        setError(null);
-        setData(result);
-      }
-      setLoading(false);
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [page, reloadToken]);
-
-  function goToPage(next: number) {
-    setLoading(true);
-    setPage(next);
-  }
-
-  function refreshList() {
-    setLoading(true);
-    setPage(0);
-    setReloadToken((n) => n + 1);
-  }
+  const data = usersQuery.data ?? null;
+  const loading = usersQuery.isLoading || usersQuery.isFetching;
+  const error = usersQuery.error
+    ? usersQuery.error instanceof Error
+      ? usersQuery.error.message
+      : "Failed to load users"
+    : null;
 
   const content = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
@@ -59,7 +28,7 @@ function AdminUsersContent() {
     <div className="min-h-screen bg-zinc-50 dark:bg-black">
       <AppHeader title="Admin · Users" />
       <main className="mx-auto max-w-4xl px-4 py-8">
-        <CreateUserForm onCreated={refreshList} />
+        <CreateUserForm onCreated={() => setPage(0)} />
 
         <div className="mb-3 flex items-baseline justify-between gap-4">
           <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
@@ -140,7 +109,7 @@ function AdminUsersContent() {
             <button
               type="button"
               disabled={loading || page <= 0}
-              onClick={() => goToPage(page - 1)}
+              onClick={() => setPage((p) => p - 1)}
               className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-zinc-100 disabled:opacity-40 dark:border-zinc-700 dark:hover:bg-zinc-900"
             >
               Previous
@@ -148,7 +117,7 @@ function AdminUsersContent() {
             <button
               type="button"
               disabled={loading || page >= totalPages - 1}
-              onClick={() => goToPage(page + 1)}
+              onClick={() => setPage((p) => p + 1)}
               className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-zinc-100 disabled:opacity-40 dark:border-zinc-700 dark:hover:bg-zinc-900"
             >
               Next

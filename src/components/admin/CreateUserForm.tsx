@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { z } from "zod";
-import { userService } from "@/api/userService";
+import { useCreateUserMutation } from "@/hooks/useUsersQuery";
 import { UserRole } from "@/lib/model/userRole";
 
 const schema = z.object({
@@ -16,6 +16,7 @@ type Props = {
 };
 
 export function CreateUserForm({ onCreated }: Props) {
+  const createMutation = useCreateUserMutation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<typeof UserRole.USER | typeof UserRole.ADMIN>(
@@ -23,7 +24,6 @@ export function CreateUserForm({ onCreated }: Props) {
   );
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -41,23 +41,19 @@ export function CreateUserForm({ onCreated }: Props) {
       return;
     }
 
-    setSubmitting(true);
-    const [, error] = await userService.createUser({
-      username: parsed.data.username,
-      password: parsed.data.password,
-      role: parsed.data.role,
-    });
-    setSubmitting(false);
-
-    if (error) {
-      setFormError(error);
-      return;
+    try {
+      await createMutation.mutateAsync({
+        username: parsed.data.username,
+        password: parsed.data.password,
+        role: parsed.data.role,
+      });
+      setUsername("");
+      setPassword("");
+      setRole(UserRole.USER);
+      onCreated();
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : "Create failed");
     }
-
-    setUsername("");
-    setPassword("");
-    setRole(UserRole.USER);
-    onCreated();
   }
 
   return (
@@ -132,10 +128,10 @@ export function CreateUserForm({ onCreated }: Props) {
         <div className="flex items-end">
           <button
             type="submit"
-            disabled={submitting}
+            disabled={createMutation.isPending}
             className="w-full rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900"
           >
-            {submitting ? "Creating…" : "Create user"}
+            {createMutation.isPending ? "Creating…" : "Create user"}
           </button>
         </div>
       </div>

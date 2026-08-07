@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { z } from "zod";
-import { taskService } from "@/api/taskService";
+import { useCreateTaskMutation } from "@/hooks/useTasksQuery";
 
 const schema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -15,12 +15,12 @@ type Props = {
 };
 
 export function CreateTaskForm({ onCreated }: Props) {
+  const createMutation = useCreateTaskMutation();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -42,24 +42,20 @@ export function CreateTaskForm({ onCreated }: Props) {
       return;
     }
 
-    setSubmitting(true);
-    const [, error] = await taskService.createTask({
-      title: parsed.data.title,
-      description: parsed.data.description ?? null,
-      dueDate: parsed.data.dueDate ?? null,
-      completed: false,
-    });
-    setSubmitting(false);
-
-    if (error) {
-      setFormError(error);
-      return;
+    try {
+      await createMutation.mutateAsync({
+        title: parsed.data.title,
+        description: parsed.data.description ?? null,
+        dueDate: parsed.data.dueDate ?? null,
+        completed: false,
+      });
+      setTitle("");
+      setDescription("");
+      setDueDate("");
+      onCreated();
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : "Create failed");
     }
-
-    setTitle("");
-    setDescription("");
-    setDueDate("");
-    onCreated();
   }
 
   return (
@@ -122,10 +118,10 @@ export function CreateTaskForm({ onCreated }: Props) {
         <div className="flex items-end">
           <button
             type="submit"
-            disabled={submitting}
+            disabled={createMutation.isPending}
             className="w-full rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900"
           >
-            {submitting ? "Creating…" : "Add task"}
+            {createMutation.isPending ? "Creating…" : "Add task"}
           </button>
         </div>
       </div>

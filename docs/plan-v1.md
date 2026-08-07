@@ -156,8 +156,8 @@ Non-goals for v1: full design system, OAuth, offline-first, native apps.
 
 ### Commit 4.1 — `chore: React Query provider and migrate data hooks`
 
-- `QueryClientProvider` in layout
-- Prefer Orval React Query client **or** thin hooks over raw ky in pages
+- `QueryProvider` in layout
+- `useTasksQuery` / mutations + `useUsersQuery` for list pages
 
 ### Commit 4.2 — `chore: drop unused axios; standardize on pnpm`
 

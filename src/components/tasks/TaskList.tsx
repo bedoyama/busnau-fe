@@ -1,29 +1,16 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
-import { taskService } from "@/api/taskService";
+import { FormEvent, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import type { PageTask } from "@/lib/model/pageTask";
+import {
+  PAGE_SIZE,
+  useDeleteTaskMutation,
+  useTasksQuery,
+  useUpdateTaskMutation,
+  type StatusFilter,
+} from "@/hooks/useTasksQuery";
 import type { Task } from "@/lib/model/task";
 import { CreateTaskForm } from "./CreateTaskForm";
-
-const PAGE_SIZE = 10;
-
-type StatusFilter = "all" | "open" | "done";
-
-function pageFromList(tasks: Task[]): PageTask {
-  return {
-    content: tasks,
-    totalElements: tasks.length,
-    totalPages: tasks.length === 0 ? 0 : 1,
-    size: tasks.length || PAGE_SIZE,
-    number: 0,
-    numberOfElements: tasks.length,
-    first: true,
-    last: true,
-    empty: tasks.length === 0,
-  };
-}
 
 function formatDueDate(dueDate: Task["dueDate"]): string {
   if (!dueDate) return "—";
@@ -171,172 +158,76 @@ function TaskRow({
 export function TaskList() {
   const { user } = useAuth();
   const [page, setPage] = useState(0);
-  const [reloadToken, setReloadToken] = useState(0);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [data, setData] = useState<PageTask | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [busyId, setBusyId] = useState<number | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
 
   const dateRangeActive = Boolean(startDate && endDate);
-  const dateRangeInvalid = Boolean(
-    startDate && endDate && startDate > endDate
-  );
 
-  useEffect(() => {
-    let cancelled = false;
-
-    void (async () => {
-      if (dateRangeInvalid) {
-        setError("Start date must be on or before end date");
-        setData(null);
-        setLoading(false);
-        return;
-      }
-
-      let result: PageTask | null = null;
-      let err: string | null = null;
-
-      if (dateRangeActive) {
-        if (!user?.id) {
-          err = "Signed-in user id required for date range filter";
-        } else {
-          const [list, listErr] = await taskService.getTasksByUserIdAndDateRange(
-            user.id,
-            startDate,
-            endDate
-          );
-          if (listErr) {
-            err = listErr;
-          } else {
-            let tasks = list ?? [];
-            if (statusFilter === "open") {
-              tasks = tasks.filter((t) => !t.completed);
-            } else if (statusFilter === "done") {
-              tasks = tasks.filter((t) => t.completed);
-            }
-            result = pageFromList(tasks);
-          }
-        }
-      } else if (statusFilter === "open") {
-        const [pageResult, pageErr] = await taskService.getTasksByCompleted(
-          false,
-          { page, size: PAGE_SIZE }
-        );
-        result = pageResult;
-        err = pageErr;
-      } else if (statusFilter === "done") {
-        const [pageResult, pageErr] = await taskService.getTasksByCompleted(
-          true,
-          { page, size: PAGE_SIZE }
-        );
-        result = pageResult;
-        err = pageErr;
-      } else {
-        const [pageResult, pageErr] = await taskService.getAllTasks({
-          page,
-          size: PAGE_SIZE,
-        });
-        result = pageResult;
-        err = pageErr;
-      }
-
-      if (cancelled) return;
-
-      if (err) {
-        setError(err);
-        setData(null);
-      } else {
-        setError(null);
-        setData(result);
-      }
-      setLoading(false);
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [
+  const tasksQuery = useTasksQuery({
     page,
-    reloadToken,
-    statusFilter,
+    size: PAGE_SIZE,
+    status: statusFilter,
     startDate,
     endDate,
-    dateRangeActive,
-    dateRangeInvalid,
-    user?.id,
-  ]);
+    userId: user?.id,
+  });
 
-  function goToPage(next: number) {
-    setLoading(true);
-    setEditingId(null);
-    setPage(next);
-  }
+  const updateMutation = useUpdateTaskMutation();
+  const deleteMutation = useDeleteTaskMutation();
+
+  const data = tasksQuery.data ?? null;
+  const loading = tasksQuery.isLoading || tasksQuery.isFetching;
+  const error = tasksQuery.error
+    ? tasksQuery.error instanceof Error
+      ? tasksQuery.error.message
+      : "Failed to load tasks"
+    : null;
+
+  const busyId =
+    updateMutation.isPending && updateMutation.variables
+      ? updateMutation.variables.id
+      : deleteMutation.isPending && deleteMutation.variables != null
+        ? deleteMutation.variables
+        : null;
 
   function setFilterStatus(next: StatusFilter) {
-    setLoading(true);
     setEditingId(null);
     setPage(0);
     setStatusFilter(next);
   }
 
   function onStartDateChange(value: string) {
-    setLoading(true);
     setEditingId(null);
     setPage(0);
     setStartDate(value);
   }
 
   function onEndDateChange(value: string) {
-    setLoading(true);
     setEditingId(null);
     setPage(0);
     setEndDate(value);
   }
 
   function clearDates() {
-    setLoading(true);
     setEditingId(null);
     setPage(0);
     setStartDate("");
     setEndDate("");
   }
 
-  function refreshList(resetToFirstPage = false) {
-    setLoading(true);
-    setEditingId(null);
-    if (resetToFirstPage) {
-      setPage(0);
-    }
-    setReloadToken((n) => n + 1);
-  }
-
-  function patchLocalTask(updated: Task) {
-    setData((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        content: prev.content.map((t) => (t.id === updated.id ? updated : t)),
-      };
-    });
-  }
-
   async function onToggleComplete(task: Task) {
     setActionError(null);
-    setBusyId(task.id);
-    const [updated, err] = await taskService.updateTask(task.id, {
-      completed: !task.completed,
-    });
-    setBusyId(null);
-    if (err || !updated) {
-      setActionError(err ?? "Failed to update task");
-      return;
+    try {
+      await updateMutation.mutateAsync({
+        id: task.id,
+        body: { completed: !task.completed },
+      });
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : "Failed to update task");
     }
-    patchLocalTask(updated);
   }
 
   async function onSaveEdit(task: Task, fields: EditFields) {
@@ -346,19 +237,19 @@ export function TaskList() {
       return;
     }
     setActionError(null);
-    setBusyId(task.id);
-    const [updated, err] = await taskService.updateTask(task.id, {
-      title,
-      description: fields.description.trim() || null,
-      dueDate: fields.dueDate || null,
-    });
-    setBusyId(null);
-    if (err || !updated) {
-      setActionError(err ?? "Failed to update task");
-      return;
+    try {
+      await updateMutation.mutateAsync({
+        id: task.id,
+        body: {
+          title,
+          description: fields.description.trim() || null,
+          dueDate: fields.dueDate || null,
+        },
+      });
+      setEditingId(null);
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : "Failed to update task");
     }
-    patchLocalTask(updated);
-    setEditingId(null);
   }
 
   async function onDelete(task: Task) {
@@ -366,22 +257,15 @@ export function TaskList() {
     if (!ok) return;
 
     setActionError(null);
-    setBusyId(task.id);
-    const [, err] = await taskService.deleteTask(task.id);
-    setBusyId(null);
-    if (err) {
-      setActionError(err);
-      return;
-    }
-
-    // Reload page so totals/pagination stay correct (empty last page → prior page)
-    const remainingOnPage = (data?.content.length ?? 1) - 1;
-    if (remainingOnPage <= 0 && page > 0) {
-      setLoading(true);
-      setPage((p) => p - 1);
-      setReloadToken((n) => n + 1);
-    } else {
-      refreshList(false);
+    try {
+      await deleteMutation.mutateAsync(task.id);
+      const remainingOnPage = (data?.content.length ?? 1) - 1;
+      if (remainingOnPage <= 0 && page > 0) {
+        setPage((p) => p - 1);
+      }
+      setEditingId(null);
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : "Failed to delete task");
     }
   }
 
@@ -392,7 +276,12 @@ export function TaskList() {
 
   return (
     <div className="w-full">
-      <CreateTaskForm onCreated={() => refreshList(true)} />
+      <CreateTaskForm
+        onCreated={() => {
+          setPage(0);
+          setEditingId(null);
+        }}
+      />
 
       <div className="mb-4 flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
         <div className="flex flex-wrap items-center gap-2">
@@ -546,7 +435,7 @@ export function TaskList() {
                       key={task.id}
                       task={task}
                       busy={busyId === task.id}
-                      onToggleComplete={onToggleComplete}
+                      onToggleComplete={(t) => void onToggleComplete(t)}
                       onStartEdit={(t) => setEditingId(t.id)}
                       onDelete={(t) => void onDelete(t)}
                     />
@@ -563,7 +452,10 @@ export function TaskList() {
           <button
             type="button"
             disabled={loading || page <= 0}
-            onClick={() => goToPage(page - 1)}
+            onClick={() => {
+              setEditingId(null);
+              setPage((p) => p - 1);
+            }}
             className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-zinc-100 disabled:opacity-40 dark:border-zinc-700 dark:hover:bg-zinc-900"
           >
             Previous
@@ -571,7 +463,10 @@ export function TaskList() {
           <button
             type="button"
             disabled={loading || page >= totalPages - 1}
-            onClick={() => goToPage(page + 1)}
+            onClick={() => {
+              setEditingId(null);
+              setPage((p) => p + 1);
+            }}
             className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-zinc-100 disabled:opacity-40 dark:border-zinc-700 dark:hover:bg-zinc-900"
           >
             Next
