@@ -166,8 +166,8 @@ Non-goals for v1: full design system, OAuth, offline-first, native apps.
 
 ### Commit 4.3 — `chore: replace create-next-app home with app shell`
 
-- Nav: Tasks, Account, Admin (if ADMIN), Login
-- Remove default marketing template
+- `/` landing with auth-aware nav (Tasks, Account, Admin, Login/Register)
+- Drop create-next-app marketing template
 
 ### Commit 4.4 — `docs: README project overview`
 
