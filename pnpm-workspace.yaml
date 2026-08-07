@@ -1,3 +1,7 @@
-ignoredBuiltDependencies:
-  - sharp
-  - unrs-resolver
+# pnpm 10+/11: allow lifecycle scripts only for deps that need them.
+# Placeholders like "set this to true or false" cause ERR_PNPM_IGNORED_BUILDS.
+allowBuilds:
+  esbuild: true # bundling (orval / tooling)
+  msw: true # installs public/mockServiceWorker.js
+  sharp: true # Next.js image optimization
+  unrs-resolver: true # eslint/next resolver native binding
