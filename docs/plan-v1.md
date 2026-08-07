@@ -107,9 +107,8 @@ Non-goals for v1: full design system, OAuth, offline-first, native apps.
 
 ### Commit 2.2 — `feat(tasks): create task`
 
-- Form → `POST /api/tasks`
-- Invalidate list query
-- MSW: create
+- `CreateTaskForm` → `POST /api/tasks`, refresh list
+- Stateful MSW `taskStore` (stable seed + pagination; create/patch/delete ready)
 
 ### Commit 2.3 — `feat(tasks): update and complete (PATCH)`
 

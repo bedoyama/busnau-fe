@@ -1,9 +1,10 @@
 import { http } from "msw";
 import { getBusnauApiMock } from "@/lib/mocks/generated/endpoints.msw";
+import { taskHandlers } from "@/lib/mocks/taskHandlers";
 
 /**
  * MSW handler list used by browser + Node workers.
- * Orval regenerates `generated/endpoints.msw.ts`; keep custom handlers here.
+ * Custom handlers first (first match wins). Orval covers the rest (auth, users, …).
  */
 export const handlers = [
   http.get("*/api/health", () => {
@@ -12,5 +13,6 @@ export const handlers = [
       headers: { "Content-Type": "application/json" },
     });
   }),
+  ...taskHandlers,
   ...getBusnauApiMock(),
 ];

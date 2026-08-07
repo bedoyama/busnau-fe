@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { taskService } from "@/api/taskService";
 import type { PageTask } from "@/lib/model/pageTask";
 import type { Task } from "@/lib/model/task";
+import { CreateTaskForm } from "./CreateTaskForm";
 
 const PAGE_SIZE = 10;
 
@@ -41,6 +42,7 @@ function TaskRow({ task }: { task: Task }) {
 
 export function TaskList() {
   const [page, setPage] = useState(0);
+  const [reloadToken, setReloadToken] = useState(0);
   const [data, setData] = useState<PageTask | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,11 +70,19 @@ export function TaskList() {
     return () => {
       cancelled = true;
     };
-  }, [page]);
+  }, [page, reloadToken]);
 
   function goToPage(next: number) {
     setLoading(true);
     setPage(next);
+  }
+
+  function refreshList(resetToFirstPage = false) {
+    setLoading(true);
+    if (resetToFirstPage) {
+      setPage(0);
+    }
+    setReloadToken((n) => n + 1);
   }
 
   const totalPages = data?.totalPages ?? 0;
@@ -82,6 +92,8 @@ export function TaskList() {
 
   return (
     <div className="w-full">
+      <CreateTaskForm onCreated={() => refreshList(true)} />
+
       <div className="mb-3 flex items-baseline justify-between gap-4">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
           Your tasks
@@ -114,7 +126,7 @@ export function TaskList() {
 
         {isEmpty && (
           <div className="p-8 text-center text-sm text-zinc-500">
-            No tasks yet. Create will land in the next step.
+            No tasks yet. Add one above.
           </div>
         )}
 
