@@ -4,21 +4,21 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { z } from "zod";
-import { authService } from "@/api/authService";
-import { setSession } from "@/api/authStorage";
+import { GuestOnly } from "@/components/auth/GuestOnly";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
 });
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const { login, busy } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -36,19 +36,11 @@ export default function LoginPage() {
       return;
     }
 
-    setSubmitting(true);
-    const [data, error] = await authService.login(parsed.data);
-    setSubmitting(false);
-
-    if (error || !data) {
-      setFormError(error ?? "Login failed");
+    const error = await login(parsed.data);
+    if (error) {
+      setFormError(error);
       return;
     }
-
-    setSession({
-      accessToken: data.accessToken,
-      refreshToken: data.refreshToken,
-    });
     router.push("/tasks");
   }
 
@@ -115,10 +107,10 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={submitting}
+            disabled={busy}
             className="w-full rounded-md bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
           >
-            {submitting ? "Signing in…" : "Sign in"}
+            {busy ? "Signing in…" : "Sign in"}
           </button>
         </form>
 
@@ -133,5 +125,13 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <GuestOnly>
+      <LoginForm />
+    </GuestOnly>
   );
 }

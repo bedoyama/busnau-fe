@@ -3,6 +3,7 @@ import { handleApiCall } from "./utils";
 import type { CreateUserRequest } from "@/lib/model/createUserRequest";
 import type { LoginRequest } from "@/lib/model/loginRequest";
 import type { LoginResponse } from "@/lib/model/loginResponse";
+import type { LogoutRequest } from "@/lib/model/logoutRequest";
 import type { User } from "@/lib/model/user";
 
 export const authService = {
@@ -14,4 +15,9 @@ export const authService = {
   /** Public registration (API forces USER role when unauthenticated). */
   register: (body: CreateUserRequest) =>
     handleApiCall(api.post("api/users", { json: body }).json<User>()),
+
+  logout: (body: LogoutRequest) =>
+    handleApiCall(
+      api.post("api/auth/logout", { json: body }).then(() => undefined as void)
+    ),
 };

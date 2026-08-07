@@ -84,10 +84,9 @@ Non-goals for v1: full design system, OAuth, offline-first, native apps.
 
 ### Commit 1.3 — `feat(auth): session provider and protected routes`
 
-- Auth context / React Query user (`GET /api/users/me`)
-- Layout: public vs authenticated
-- Logout → `POST /api/auth/logout` with refresh token + clear storage
-- MSW: `/me`, logout, refresh
+- `AuthProvider` + `useAuth` (bootstrap via `/api/users/me`)
+- `RequireAuth` / `GuestOnly` guards
+- Logout → API + clear storage → `/login`
 
 ### Commit 1.4 — `test/smoke: auth flows mock mode`
 

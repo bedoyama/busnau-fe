@@ -1,19 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { hasSession } from "@/api/authStorage";
-import { useEffect, useState } from "react";
+import { RequireAuth } from "@/components/auth/RequireAuth";
+import { useAuth } from "@/components/auth/AuthProvider";
 
-/**
- * Placeholder landing after login (full task UI is Phase 2).
- * Session check is client-only; 1.3 will add a real auth guard.
- */
-export default function TasksPlaceholderPage() {
-  const [signedIn, setSignedIn] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    setSignedIn(hasSession());
-  }, []);
+function TasksContent() {
+  const { user, logout, busy } = useAuth();
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-zinc-50 px-4 dark:bg-black">
@@ -21,24 +13,35 @@ export default function TasksPlaceholderPage() {
         Tasks
       </h1>
       <p className="max-w-md text-center text-sm text-zinc-600 dark:text-zinc-400">
-        Placeholder page — full list/create UI comes in Phase 2. Auth session:{" "}
-        {signedIn === null
-          ? "…"
-          : signedIn
-            ? "signed in (token in localStorage)"
-            : "not signed in"}
+        Placeholder — full list/create UI is Phase 2.
       </p>
-      <div className="flex gap-4 text-sm">
-        <Link href="/login" className="underline underline-offset-4">
-          Login
-        </Link>
-        <Link href="/register" className="underline underline-offset-4">
-          Register
-        </Link>
+      {user && (
+        <p className="text-sm text-zinc-800 dark:text-zinc-200">
+          Signed in as <span className="font-medium">{user.username}</span> (
+          {user.role})
+        </p>
+      )}
+      <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
         <Link href="/testhandlers" className="underline underline-offset-4">
           Test handlers
         </Link>
+        <button
+          type="button"
+          onClick={() => void logout()}
+          disabled={busy}
+          className="rounded-md border border-zinc-300 px-3 py-1.5 font-medium hover:bg-zinc-100 disabled:opacity-60 dark:border-zinc-700 dark:hover:bg-zinc-900"
+        >
+          {busy ? "Signing out…" : "Log out"}
+        </button>
       </div>
     </div>
+  );
+}
+
+export default function TasksPage() {
+  return (
+    <RequireAuth>
+      <TasksContent />
+    </RequireAuth>
   );
 }

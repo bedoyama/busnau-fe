@@ -4,23 +4,21 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { z } from "zod";
-import { authService } from "@/api/authService";
-import { setSession } from "@/api/authStorage";
+import { GuestOnly } from "@/components/auth/GuestOnly";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 const registerSchema = z.object({
   username: z.string().min(1, "Username is required"),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const { register, busy } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -38,31 +36,11 @@ export default function RegisterPage() {
       return;
     }
 
-    setSubmitting(true);
-
-    // 1) Create account  2) Login so we get tokens (register alone has no JWT)
-    const [, registerError] = await authService.register(parsed.data);
-    if (registerError) {
-      setSubmitting(false);
-      setFormError(registerError);
+    const error = await register(parsed.data);
+    if (error) {
+      setFormError(error);
       return;
     }
-
-    const [loginData, loginError] = await authService.login(parsed.data);
-    setSubmitting(false);
-
-    if (loginError || !loginData) {
-      setFormError(
-        loginError ??
-          "Account created but sign-in failed — try logging in manually"
-      );
-      return;
-    }
-
-    setSession({
-      accessToken: loginData.accessToken,
-      refreshToken: loginData.refreshToken,
-    });
     router.push("/tasks");
   }
 
@@ -129,10 +107,10 @@ export default function RegisterPage() {
 
           <button
             type="submit"
-            disabled={submitting}
+            disabled={busy}
             className="w-full rounded-md bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
           >
-            {submitting ? "Creating…" : "Register"}
+            {busy ? "Creating…" : "Register"}
           </button>
         </form>
 
@@ -147,5 +125,13 @@ export default function RegisterPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <GuestOnly>
+      <RegisterForm />
+    </GuestOnly>
   );
 }
