@@ -44,9 +44,10 @@ Non-goals for v1: full design system, OAuth, offline-first, native apps.
 
 ### Commit 0.2 — `chore: refresh OpenAPI from busnau-api`
 
-- Replace `openapi/swagger.json` from running API `/v3/api-docs`
+- Replace `openapi/swagger.json` (current API: Page, PATCH, /me, logout, auth shapes)
 - Fix `orval.config.ts` so **schemas + mocks land under `src/`** (single source of truth)
 - Document regenerate in LOCAL.md / README
+- Note: live `/v3/api-docs` needed SecurityConfig permit for exact path (API one-liner)
 
 ### Commit 0.3 — `chore: regenerate Orval models and MSW handlers`
 

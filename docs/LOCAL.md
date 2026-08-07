@@ -57,19 +57,25 @@ NEXT_PUBLIC_USE_MOCKS=true
 
 Whenever **busnau-api** adds or changes endpoints:
 
-1. Export OpenAPI from a running API (or committed export):
+1. **Refresh** `openapi/swagger.json` from the live API (preferred):
    ```bash
-   curl -s http://localhost:8080/v3/api-docs > openapi/swagger.json
+   curl -s http://localhost:8080/v3/api-docs | jq . > openapi/swagger.json
    ```
-2. Align `orval.config.ts` output paths with where the app imports from (today models live under `src/lib/model` / mocks under `src/lib/mocks` — keep one canonical layout).
+   If that returns **401**, Spring Security is matching `/v3/api-docs/**` but not the exact path `/v3/api-docs` — fix permit matchers on the API (or edit `openapi/swagger.json` by hand from controllers + a live `curl` of sample responses, as done for Phase 0.2).
+2. Orval outputs land under **`src/` only** (see `orval.config.ts`):
+   - models → `src/lib/model/`
+   - MSW → `src/lib/mocks/endpoints.msw.ts`
+   - Do **not** use the legacy top-level `lib/mocks/generated/` tree.
 3. Regenerate:
    ```bash
    pnpm generate:api
    ```
-4. Fix compile errors (Page types, new paths, auth bodies).
-5. Smoke `/testhandlers` and the feature UI against **mocks** before flipping to real backend.
+4. Fix compile errors (Page types, new paths, auth bodies). Hand-tune MSW if Orval’s faker output is wrong for auth/pages.
+5. Smoke mock mode (`pnpm dev`, default) and `/testhandlers` before flipping to real backend.
 
-**Rule of thumb for FE PRs:** if you consume a new/changed endpoint, regenerate Orval **and** leave MSW handlers green for that path.
+**Rule of thumb for FE PRs:** if you consume a new/changed endpoint, update OpenAPI + regenerate Orval **and** leave MSW handlers green for that path in the same PR.
+
+**Dev default remains mocks.** Switch to real API only when checking integration (`NEXT_PUBLIC_USE_MOCKS=false` + API on `:8080`; see Mode 2).
 
 ---
 

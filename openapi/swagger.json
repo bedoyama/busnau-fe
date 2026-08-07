@@ -1,13 +1,14 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "OpenAPI definition",
-    "version": "v0"
+    "title": "busnau-api",
+    "description": "Task manager API. Synced from busnau-api controllers + live response shapes (2026-08-07). Live /v3/api-docs was blocked by security matcher (exact path); re-export after API fix when available.",
+    "version": "v1"
   },
   "servers": [
     {
       "url": "http://localhost:8080",
-      "description": "Generated server url"
+      "description": "Local busnau-api"
     }
   ],
   "security": [
@@ -15,205 +16,176 @@
       "bearerAuth": []
     }
   ],
+  "tags": [
+    { "name": "auth-controller" },
+    { "name": "user-controller" },
+    { "name": "task-controller" }
+  ],
   "paths": {
-    "/api/users": {
-      "get": {
-        "tags": [
-          "user-controller"
-        ],
-        "summary": "Get all users",
-        "operationId": "getAllUsers",
-        "responses": {
-          "403": {
-            "description": "Forbidden"
-          },
-          "200": {
-            "description": "List of users",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/User"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "user-controller"
-        ],
-        "summary": "Create a new user",
-        "operationId": "createUser",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateUserRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "400": {
-            "description": "Invalid user input",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/User"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "User created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/User"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/tasks": {
-      "get": {
-        "tags": [
-          "task-controller"
-        ],
-        "summary": "Get all tasks",
-        "operationId": "getAllTasks",
-        "responses": {
-          "200": {
-            "description": "Tasks retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Task"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "task-controller"
-        ],
-        "summary": "Create a new task",
-        "operationId": "createTask",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateTaskRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Task created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Task"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/auth/refresh": {
-      "post": {
-        "tags": [
-          "auth-controller"
-        ],
-        "summary": "Refresh access token",
-        "operationId": "refreshToken",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RefreshRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Access token refreshed successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid or expired refresh token"
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
-      }
-    },
     "/api/auth/login": {
       "post": {
-        "tags": [
-          "auth-controller"
-        ],
+        "tags": ["auth-controller"],
         "summary": "Authenticate user",
         "operationId": "authenticateUser",
+        "security": [],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LoginRequest"
-              }
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
             "description": "User authenticated successfully",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "string"
-                }
+                "schema": { "$ref": "#/components/schemas/LoginResponse" }
               }
             }
           },
-          "400": {
-            "description": "Invalid username or password"
-          },
-          "500": {
-            "description": "Internal server error"
+          "400": { "description": "Invalid username or password" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "tags": ["auth-controller"],
+        "summary": "Refresh access token",
+        "operationId": "refreshToken",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RefreshRequest" }
+            }
           }
+        },
+        "responses": {
+          "200": {
+            "description": "Access token refreshed successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RefreshResponse" }
+              }
+            }
+          },
+          "400": { "description": "Invalid or expired refresh token" }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": ["auth-controller"],
+        "summary": "Logout (revoke refresh token)",
+        "operationId": "logout",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LogoutRequest" }
+            }
+          }
+        },
+        "responses": {
+          "204": { "description": "Refresh token revoked, or already missing/revoked" },
+          "400": { "description": "Missing refresh token" }
+        }
+      }
+    },
+    "/api/users": {
+      "get": {
+        "tags": ["user-controller"],
+        "summary": "Get all users (paged; default page=0, size=20)",
+        "operationId": "getAllUsers",
+        "parameters": [
+          { "$ref": "#/components/parameters/page" },
+          { "$ref": "#/components/parameters/size" },
+          { "$ref": "#/components/parameters/sort" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page of users",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PageUser" }
+              }
+            }
+          },
+          "403": { "description": "Forbidden" }
+        }
+      },
+      "post": {
+        "tags": ["user-controller"],
+        "summary": "Create a new user",
+        "operationId": "createUser",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateUserRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/User" }
+              }
+            }
+          },
+          "400": { "description": "Invalid user input" }
+        }
+      }
+    },
+    "/api/users/me": {
+      "get": {
+        "tags": ["user-controller"],
+        "summary": "Get the authenticated user's profile",
+        "operationId": "getCurrentUser",
+        "responses": {
+          "200": {
+            "description": "Current user (password never serialized)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/User" }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/users/me/password": {
+      "post": {
+        "tags": ["user-controller"],
+        "summary": "Change the authenticated user's password",
+        "operationId": "changePassword",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ChangePasswordRequest" }
+            }
+          }
+        },
+        "responses": {
+          "204": { "description": "Password updated" },
+          "400": { "description": "Validation or wrong current password" },
+          "401": { "description": "Unauthorized" }
         }
       }
     },
     "/api/users/{id}": {
       "get": {
-        "tags": [
-          "user-controller"
-        ],
+        "tags": ["user-controller"],
         "summary": "Get a user by ID",
         "operationId": "getUserById",
         "parameters": [
@@ -221,35 +193,24 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
+            "schema": { "type": "integer", "format": "int64" }
           }
         ],
         "responses": {
-          "403": {
-            "description": "Forbidden"
-          },
-          "404": {
-            "description": "User not found"
-          },
           "200": {
             "description": "User found",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/User"
-                }
+                "schema": { "$ref": "#/components/schemas/User" }
               }
             }
-          }
+          },
+          "403": { "description": "Forbidden" },
+          "404": { "description": "User not found" }
         }
       },
       "delete": {
-        "tags": [
-          "user-controller"
-        ],
+        "tags": ["user-controller"],
         "summary": "Delete a user by ID",
         "operationId": "deleteUser",
         "parameters": [
@@ -257,27 +218,18 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
+            "schema": { "type": "integer", "format": "int64" }
           }
         ],
         "responses": {
-          "403": {
-            "description": "Forbidden"
-          },
-          "204": {
-            "description": "User deleted successfully"
-          }
+          "204": { "description": "User deleted successfully" },
+          "403": { "description": "Forbidden" }
         }
       }
     },
     "/api/users/username/{username}": {
       "get": {
-        "tags": [
-          "user-controller"
-        ],
+        "tags": ["user-controller"],
         "summary": "Get a user by username",
         "operationId": "getUserByUsername",
         "parameters": [
@@ -285,36 +237,74 @@
             "name": "username",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
-          "403": {
-            "description": "Forbidden"
-          },
-          "404": {
-            "description": "User not found"
-          },
           "200": {
             "description": "User found",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/User"
-                }
+                "schema": { "$ref": "#/components/schemas/User" }
               }
             }
+          },
+          "403": { "description": "Forbidden" },
+          "404": { "description": "User not found" }
+        }
+      }
+    },
+    "/api/tasks": {
+      "get": {
+        "tags": ["task-controller"],
+        "summary": "Get all tasks (paged; default page=0, size=20)",
+        "operationId": "getAllTasks",
+        "parameters": [
+          { "$ref": "#/components/parameters/page" },
+          { "$ref": "#/components/parameters/size" },
+          { "$ref": "#/components/parameters/sort" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page of tasks",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PageTask" }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" }
+        }
+      },
+      "post": {
+        "tags": ["task-controller"],
+        "summary": "Create a new task",
+        "operationId": "createTask",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateTaskRequest" }
+            }
           }
+        },
+        "responses": {
+          "200": {
+            "description": "Task created successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Task" }
+              }
+            }
+          },
+          "400": { "description": "Invalid task input" },
+          "401": { "description": "Unauthorized" }
         }
       }
     },
     "/api/tasks/{id}": {
       "get": {
-        "tags": [
-          "task-controller"
-        ],
+        "tags": ["task-controller"],
         "summary": "Get a task by ID",
         "operationId": "getTaskById",
         "parameters": [
@@ -322,10 +312,7 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
+            "schema": { "type": "integer", "format": "int64" }
           }
         ],
         "responses": {
@@ -333,21 +320,47 @@
             "description": "Task found",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Task"
-                }
+                "schema": { "$ref": "#/components/schemas/Task" }
               }
             }
           },
-          "404": {
-            "description": "Task not found"
+          "404": { "description": "Task not found" }
+        }
+      },
+      "patch": {
+        "tags": ["task-controller"],
+        "summary": "Update a task (partial)",
+        "operationId": "updateTask",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "format": "int64" }
           }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateTaskRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Task" }
+              }
+            }
+          },
+          "404": { "description": "Task not found" }
         }
       },
       "delete": {
-        "tags": [
-          "task-controller"
-        ],
+        "tags": ["task-controller"],
         "summary": "Delete a task",
         "operationId": "deleteTask",
         "parameters": [
@@ -355,27 +368,18 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
+            "schema": { "type": "integer", "format": "int64" }
           }
         ],
         "responses": {
-          "204": {
-            "description": "Task deleted successfully"
-          },
-          "404": {
-            "description": "Task not found"
-          }
+          "204": { "description": "Task deleted successfully" },
+          "404": { "description": "Task not found" }
         }
       }
     },
     "/api/tasks/user/{userId}": {
       "get": {
-        "tags": [
-          "task-controller"
-        ],
+        "tags": ["task-controller"],
         "summary": "Get tasks by user ID",
         "operationId": "getTasksByUserId",
         "parameters": [
@@ -383,37 +387,57 @@
             "name": "userId",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
+            "schema": { "type": "integer", "format": "int64" }
           }
         ],
         "responses": {
-          "403": {
-            "description": "Access denied"
-          },
           "200": {
             "description": "Tasks retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Task"
-                  }
+                  "items": { "$ref": "#/components/schemas/Task" }
                 }
               }
             }
-          }
+          },
+          "403": { "description": "Access denied" }
+        }
+      }
+    },
+    "/api/tasks/completed/{completed}": {
+      "get": {
+        "tags": ["task-controller"],
+        "summary": "Get tasks by completed status (paged; default page=0, size=20)",
+        "operationId": "getTasksByCompleted",
+        "parameters": [
+          {
+            "name": "completed",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "boolean" }
+          },
+          { "$ref": "#/components/parameters/page" },
+          { "$ref": "#/components/parameters/size" },
+          { "$ref": "#/components/parameters/sort" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page of tasks",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PageTask" }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" }
         }
       }
     },
     "/api/tasks/user/{userId}/date-range": {
       "get": {
-        "tags": [
-          "task-controller"
-        ],
+        "tags": ["task-controller"],
         "summary": "Get tasks by user ID and date range",
         "operationId": "getTasksByUserIdAndDateRange",
         "parameters": [
@@ -421,209 +445,255 @@
             "name": "userId",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
+            "schema": { "type": "integer", "format": "int64" }
           },
           {
             "name": "start",
             "in": "query",
             "required": true,
-            "schema": {
-              "type": "string",
-              "format": "date"
-            }
+            "schema": { "type": "string", "format": "date" }
           },
           {
             "name": "end",
             "in": "query",
             "required": true,
-            "schema": {
-              "type": "string",
-              "format": "date"
-            }
+            "schema": { "type": "string", "format": "date" }
           }
         ],
         "responses": {
-          "403": {
-            "description": "Access denied"
+          "200": {
+            "description": "Tasks retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Task" }
+                }
+              }
+            }
           },
-          "200": {
-            "description": "Tasks retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Task"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/tasks/completed/{completed}": {
-      "get": {
-        "tags": [
-          "task-controller"
-        ],
-        "summary": "Get tasks by completed status",
-        "operationId": "getTasksByCompleted",
-        "parameters": [
-          {
-            "name": "completed",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "boolean"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Tasks retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Task"
-                  }
-                }
-              }
-            }
-          }
+          "403": { "description": "Access denied" }
         }
       }
     }
   },
   "components": {
-    "schemas": {
-      "CreateUserRequest": {
-        "required": [
-          "password",
-          "username"
-        ],
-        "type": "object",
-        "properties": {
-          "username": {
-            "type": "string"
-          },
-          "password": {
-            "maxLength": 2147483647,
-            "minLength": 8,
-            "type": "string"
-          },
-          "role": {
-            "type": "string"
-          }
-        }
-      },
-      "User": {
-        "required": [
-          "role",
-          "username"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "username": {
-            "type": "string"
-          },
-          "role": {
-            "type": "string",
-            "enum": [
-              "ADMIN",
-              "USER"
-            ]
-          }
-        }
-      },
-      "CreateTaskRequest": {
-        "required": [
-          "title"
-        ],
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "dueDate": {
-            "type": "string",
-            "format": "date"
-          },
-          "completed": {
-            "type": "boolean"
-          },
-          "userId": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "Task": {
-        "required": [
-          "title"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "title": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "dueDate": {
-            "type": "string",
-            "format": "date"
-          },
-          "completed": {
-            "type": "boolean"
-          },
-          "userId": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "RefreshRequest": {
-        "type": "object",
-        "properties": {
-          "refreshToken": {
-            "type": "string"
-          }
-        }
-      },
-      "LoginRequest": {
-        "type": "object",
-        "properties": {
-          "username": {
-            "type": "string"
-          },
-          "password": {
-            "type": "string"
-          }
-        }
-      }
-    },
     "securitySchemes": {
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT"
+      }
+    },
+    "parameters": {
+      "page": {
+        "name": "page",
+        "in": "query",
+        "description": "Zero-based page index",
+        "required": false,
+        "schema": { "type": "integer", "minimum": 0, "default": 0 }
+      },
+      "size": {
+        "name": "size",
+        "in": "query",
+        "description": "Page size",
+        "required": false,
+        "schema": { "type": "integer", "minimum": 1, "default": 20 }
+      },
+      "sort": {
+        "name": "sort",
+        "in": "query",
+        "description": "Sorting criteria in the format: property(,asc|desc). Multiple sort params allowed.",
+        "required": false,
+        "schema": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "style": "form",
+        "explode": true
+      }
+    },
+    "schemas": {
+      "UserRole": {
+        "type": "string",
+        "enum": ["USER", "ADMIN"]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "int64" },
+          "username": { "type": "string" },
+          "role": { "$ref": "#/components/schemas/UserRole" }
+        },
+        "required": ["id", "username", "role"]
+      },
+      "Task": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "int64" },
+          "title": { "type": "string" },
+          "description": { "type": "string", "nullable": true },
+          "dueDate": { "type": "string", "format": "date", "nullable": true },
+          "completed": { "type": "boolean" },
+          "userId": { "type": "integer", "format": "int64", "nullable": true }
+        },
+        "required": ["id", "title", "completed"]
+      },
+      "SortObject": {
+        "type": "object",
+        "properties": {
+          "empty": { "type": "boolean" },
+          "sorted": { "type": "boolean" },
+          "unsorted": { "type": "boolean" }
+        }
+      },
+      "PageableObject": {
+        "type": "object",
+        "properties": {
+          "offset": { "type": "integer", "format": "int64" },
+          "pageNumber": { "type": "integer" },
+          "pageSize": { "type": "integer" },
+          "paged": { "type": "boolean" },
+          "unpaged": { "type": "boolean" },
+          "sort": { "$ref": "#/components/schemas/SortObject" }
+        }
+      },
+      "PageUser": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/User" }
+          },
+          "totalElements": { "type": "integer", "format": "int64" },
+          "totalPages": { "type": "integer" },
+          "size": { "type": "integer" },
+          "number": { "type": "integer" },
+          "numberOfElements": { "type": "integer" },
+          "first": { "type": "boolean" },
+          "last": { "type": "boolean" },
+          "empty": { "type": "boolean" },
+          "pageable": { "$ref": "#/components/schemas/PageableObject" },
+          "sort": { "$ref": "#/components/schemas/SortObject" }
+        },
+        "required": ["content", "totalElements", "totalPages", "size", "number"]
+      },
+      "PageTask": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Task" }
+          },
+          "totalElements": { "type": "integer", "format": "int64" },
+          "totalPages": { "type": "integer" },
+          "size": { "type": "integer" },
+          "number": { "type": "integer" },
+          "numberOfElements": { "type": "integer" },
+          "first": { "type": "boolean" },
+          "last": { "type": "boolean" },
+          "empty": { "type": "boolean" },
+          "pageable": { "$ref": "#/components/schemas/PageableObject" },
+          "sort": { "$ref": "#/components/schemas/SortObject" }
+        },
+        "required": ["content", "totalElements", "totalPages", "size", "number"]
+      },
+      "CreateUserRequest": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string" },
+          "password": { "type": "string", "minLength": 8 },
+          "role": {
+            "type": "string",
+            "description": "Optional; public registration forces USER. ADMIN may set ADMIN/USER when authenticated."
+          }
+        },
+        "required": ["username", "password"]
+      },
+      "CreateTaskRequest": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "description": { "type": "string", "nullable": true },
+          "dueDate": { "type": "string", "format": "date", "nullable": true },
+          "completed": { "type": "boolean", "default": false },
+          "userId": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "Optional; ADMIN may assign to another user"
+          }
+        },
+        "required": ["title"]
+      },
+      "UpdateTaskRequest": {
+        "type": "object",
+        "description": "Partial update — null/omitted fields are left unchanged",
+        "properties": {
+          "title": { "type": "string", "nullable": true },
+          "description": { "type": "string", "nullable": true },
+          "dueDate": { "type": "string", "format": "date", "nullable": true },
+          "completed": { "type": "boolean", "nullable": true }
+        }
+      },
+      "ChangePasswordRequest": {
+        "type": "object",
+        "properties": {
+          "currentPassword": { "type": "string" },
+          "newPassword": { "type": "string", "minLength": 8 }
+        },
+        "required": ["currentPassword", "newPassword"]
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string" },
+          "password": { "type": "string" }
+        },
+        "required": ["username", "password"]
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "accessToken": { "type": "string" },
+          "refreshToken": { "type": "string" },
+          "id": { "type": "integer", "format": "int64" },
+          "username": { "type": "string" },
+          "role": { "$ref": "#/components/schemas/UserRole" }
+        },
+        "required": ["accessToken", "refreshToken", "id", "username", "role"]
+      },
+      "RefreshRequest": {
+        "type": "object",
+        "properties": {
+          "refreshToken": { "type": "string" }
+        },
+        "required": ["refreshToken"]
+      },
+      "RefreshResponse": {
+        "type": "object",
+        "properties": {
+          "accessToken": { "type": "string" },
+          "refreshToken": { "type": "string" }
+        },
+        "required": ["accessToken", "refreshToken"]
+      },
+      "LogoutRequest": {
+        "type": "object",
+        "properties": {
+          "refreshToken": { "type": "string" }
+        },
+        "required": ["refreshToken"]
+      },
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string" },
+          "details": {
+            "type": "object",
+            "additionalProperties": { "type": "string" }
+          }
+        }
       }
     }
   }
