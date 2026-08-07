@@ -177,12 +177,18 @@ Non-goals for v1: full design system, OAuth, offline-first, native apps.
 
 ## Phase 5 — Optional stretch
 
-| Item | Notes |
+| Item | Status |
 |------|--------|
-| CORS helper PR on busnau-api | `localhost:3000` for local profile |
-| E2E (Playwright) mock mode | Login + create task |
-| E2E against compose stack | CI later |
-| Align with backend plan-v3 DTOs | When API ships TaskResponse/UserResponse |
+| CORS on busnau-api for local FE | **Done** (`app.cors.allowed-origins`) |
+| E2E Playwright mock mode | **Done** — `pnpm test:e2e` (login + create task, guest guard) |
+| E2E against compose / real API | Deferred (CI later) |
+| Align with backend plan-v3 DTOs | Deferred until API ships TaskResponse/UserResponse |
+
+### Commit 5.1 — `test(e2e): Playwright mock login and create task`
+
+- `@playwright/test`, `e2e/auth-tasks.spec.ts`, `playwright.config.ts`
+- `serviceWorkers: allow`, force `NEXT_PUBLIC_USE_MOCKS=true` for webServer
+- Harden MSW start (idempotent + `__MSW_READY__`)
 
 ---
 

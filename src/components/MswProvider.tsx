@@ -1,24 +1,37 @@
-'use client'
-import { useEffect, useState } from 'react'
+"use client";
+
+import { useEffect, useState } from "react";
 
 export function MSWProvider({ children }: { children: React.ReactNode }) {
-  const [fetching, setFetching] = useState(true)
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const shouldMock = process.env.NEXT_PUBLIC_USE_MOCKS === 'true' ||
-      (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_MOCKS !== 'false');
+    let cancelled = false;
 
-    if (shouldMock) {
-      import('../lib/mocks').then(async ({ initMocks }) => {
-        await initMocks()
-        setFetching(false)
-      })
-    } else {
-      setFetching(false)
-    }
-  }, [])
+    const shouldMock =
+      process.env.NEXT_PUBLIC_USE_MOCKS === "true" ||
+      (process.env.NODE_ENV === "development" &&
+        process.env.NEXT_PUBLIC_USE_MOCKS !== "false");
 
-  if (fetching) return null
+    void (async () => {
+      try {
+        if (shouldMock) {
+          const { initMocks } = await import("../lib/mocks");
+          await initMocks();
+        }
+      } catch (err) {
+        console.error("MSW failed to start", err);
+      } finally {
+        if (!cancelled) setReady(true);
+      }
+    })();
 
-  return <>{children}</>
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (!ready) return null;
+
+  return <>{children}</>;
 }

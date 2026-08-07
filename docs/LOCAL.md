@@ -195,6 +195,19 @@ Run with `pnpm dev` (mocks **on** by default). Optional second pass with real AP
 
 ---
 
+## E2E (Playwright, mock mode)
+
+No Java required. Starts a fresh `pnpm dev` with MSW forced on:
+
+```bash
+pnpm test:e2e          # headless Chromium
+pnpm test:e2e:ui       # interactive UI
+```
+
+Coverage today: login → create task; unauthenticated `/tasks` → `/login`.
+
+First machine: `pnpm exec playwright install chromium` (browsers are not in git).
+
 ## Useful scripts
 
 ```bash
@@ -202,6 +215,7 @@ pnpm dev              # Next dev server
 pnpm build            # production build
 pnpm lint
 pnpm generate:api     # Orval from openapi/swagger.json
+pnpm test:e2e         # Playwright against MSW
 ```
 
 ---

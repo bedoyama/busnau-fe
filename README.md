@@ -112,6 +112,8 @@ pnpm dev            # Next dev server
 pnpm build
 pnpm lint
 pnpm generate:api   # Orval from openapi/swagger.json
+pnpm test:e2e       # Playwright (MSW mock mode)
+pnpm test:e2e:ui
 ```
 
 ## Stack
