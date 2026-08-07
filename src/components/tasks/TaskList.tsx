@@ -86,11 +86,13 @@ function TaskRow({
   busy,
   onToggleComplete,
   onStartEdit,
+  onDelete,
 }: {
   task: Task;
   busy: boolean;
   onToggleComplete: (task: Task) => void;
   onStartEdit: (task: Task) => void;
+  onDelete: (task: Task) => void;
 }) {
   return (
     <tr className="border-b border-zinc-100 last:border-0 dark:border-zinc-800">
@@ -126,14 +128,24 @@ function TaskRow({
         {task.userId ?? "—"}
       </td>
       <td className="px-4 py-3 text-right text-sm">
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => onStartEdit(task)}
-          className="text-xs font-medium text-zinc-700 underline-offset-2 hover:underline disabled:opacity-50 dark:text-zinc-300"
-        >
-          Edit
-        </button>
+        <div className="flex items-center justify-end gap-3">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => onStartEdit(task)}
+            className="text-xs font-medium text-zinc-700 underline-offset-2 hover:underline disabled:opacity-50 dark:text-zinc-300"
+          >
+            Edit
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => onDelete(task)}
+            className="text-xs font-medium text-red-600 underline-offset-2 hover:underline disabled:opacity-50 dark:text-red-400"
+          >
+            Delete
+          </button>
+        </div>
       </td>
     </tr>
   );
@@ -235,6 +247,30 @@ export function TaskList() {
     setEditingId(null);
   }
 
+  async function onDelete(task: Task) {
+    const ok = window.confirm(`Delete task “${task.title}”?`);
+    if (!ok) return;
+
+    setActionError(null);
+    setBusyId(task.id);
+    const [, err] = await taskService.deleteTask(task.id);
+    setBusyId(null);
+    if (err) {
+      setActionError(err);
+      return;
+    }
+
+    // Reload page so totals/pagination stay correct (empty last page → prior page)
+    const remainingOnPage = (data?.content.length ?? 1) - 1;
+    if (remainingOnPage <= 0 && page > 0) {
+      setLoading(true);
+      setPage((p) => p - 1);
+      setReloadToken((n) => n + 1);
+    } else {
+      refreshList(false);
+    }
+  }
+
   const totalPages = data?.totalPages ?? 0;
   const totalElements = data?.totalElements ?? 0;
   const content = data?.content ?? [];
@@ -318,6 +354,7 @@ export function TaskList() {
                       busy={busyId === task.id}
                       onToggleComplete={onToggleComplete}
                       onStartEdit={(t) => setEditingId(t.id)}
+                      onDelete={(t) => void onDelete(t)}
                     />
                   )
                 )}

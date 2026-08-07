@@ -118,8 +118,8 @@ Non-goals for v1: full design system, OAuth, offline-first, native apps.
 
 ### Commit 2.4 — `feat(tasks): delete`
 
-- Confirm + `DELETE /api/tasks/{id}`
-- MSW: delete
+- Confirm dialog + `DELETE /api/tasks/{id}` + list refresh
+- MSW: taskStore delete
 
 ### Commit 2.5 — `feat(tasks): filters (completed, optional date range)`
 
