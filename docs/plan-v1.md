@@ -123,8 +123,9 @@ Non-goals for v1: full design system, OAuth, offline-first, native apps.
 
 ### Commit 2.5 — `feat(tasks): filters (completed, optional date range)`
 
-- Use paged completed endpoint; date-range when needed
-- MSW: matching handlers
+- Status chips: All / Open / Done (`GET .../completed/{bool}` when filtered)
+- Optional due date range (`GET .../user/{id}/date-range`); status can stack client-side
+- MSW: completed + date-range on taskStore
 
 **Success:** Full personal task loop against mock and real API.
 

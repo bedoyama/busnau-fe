@@ -5,6 +5,7 @@ import {
   createTask,
   deleteTask,
   getTask,
+  listByUserAndDateRange,
   listTasksByCompleted,
   listTasksPage,
   updateTask,
@@ -27,6 +28,20 @@ export const taskHandlers = [
     const completed = String(params.completed) === "true";
     const { page, size } = parsePage(new URL(request.url));
     return HttpResponse.json(listTasksByCompleted(completed, page, size));
+  }),
+
+  http.get("*/api/tasks/user/:userId/date-range", ({ request, params }) => {
+    const userId = Number(params.userId);
+    const url = new URL(request.url);
+    const start = url.searchParams.get("start") ?? "";
+    const end = url.searchParams.get("end") ?? "";
+    if (!start || !end) {
+      return HttpResponse.json(
+        { error: "start and end query params are required" },
+        { status: 400 }
+      );
+    }
+    return HttpResponse.json(listByUserAndDateRange(userId, start, end));
   }),
 
   http.get("*/api/tasks/:id", ({ params }) => {

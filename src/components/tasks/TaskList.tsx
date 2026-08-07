@@ -2,11 +2,28 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { taskService } from "@/api/taskService";
+import { useAuth } from "@/components/auth/AuthProvider";
 import type { PageTask } from "@/lib/model/pageTask";
 import type { Task } from "@/lib/model/task";
 import { CreateTaskForm } from "./CreateTaskForm";
 
 const PAGE_SIZE = 10;
+
+type StatusFilter = "all" | "open" | "done";
+
+function pageFromList(tasks: Task[]): PageTask {
+  return {
+    content: tasks,
+    totalElements: tasks.length,
+    totalPages: tasks.length === 0 ? 0 : 1,
+    size: tasks.length || PAGE_SIZE,
+    number: 0,
+    numberOfElements: tasks.length,
+    first: true,
+    last: true,
+    empty: tasks.length === 0,
+  };
+}
 
 function formatDueDate(dueDate: Task["dueDate"]): string {
   if (!dueDate) return "—";
@@ -152,8 +169,12 @@ function TaskRow({
 }
 
 export function TaskList() {
+  const { user } = useAuth();
   const [page, setPage] = useState(0);
   const [reloadToken, setReloadToken] = useState(0);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [data, setData] = useState<PageTask | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -161,14 +182,69 @@ export function TaskList() {
   const [busyId, setBusyId] = useState<number | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
 
+  const dateRangeActive = Boolean(startDate && endDate);
+  const dateRangeInvalid = Boolean(
+    startDate && endDate && startDate > endDate
+  );
+
   useEffect(() => {
     let cancelled = false;
 
     void (async () => {
-      const [result, err] = await taskService.getAllTasks({
-        page,
-        size: PAGE_SIZE,
-      });
+      if (dateRangeInvalid) {
+        setError("Start date must be on or before end date");
+        setData(null);
+        setLoading(false);
+        return;
+      }
+
+      let result: PageTask | null = null;
+      let err: string | null = null;
+
+      if (dateRangeActive) {
+        if (!user?.id) {
+          err = "Signed-in user id required for date range filter";
+        } else {
+          const [list, listErr] = await taskService.getTasksByUserIdAndDateRange(
+            user.id,
+            startDate,
+            endDate
+          );
+          if (listErr) {
+            err = listErr;
+          } else {
+            let tasks = list ?? [];
+            if (statusFilter === "open") {
+              tasks = tasks.filter((t) => !t.completed);
+            } else if (statusFilter === "done") {
+              tasks = tasks.filter((t) => t.completed);
+            }
+            result = pageFromList(tasks);
+          }
+        }
+      } else if (statusFilter === "open") {
+        const [pageResult, pageErr] = await taskService.getTasksByCompleted(
+          false,
+          { page, size: PAGE_SIZE }
+        );
+        result = pageResult;
+        err = pageErr;
+      } else if (statusFilter === "done") {
+        const [pageResult, pageErr] = await taskService.getTasksByCompleted(
+          true,
+          { page, size: PAGE_SIZE }
+        );
+        result = pageResult;
+        err = pageErr;
+      } else {
+        const [pageResult, pageErr] = await taskService.getAllTasks({
+          page,
+          size: PAGE_SIZE,
+        });
+        result = pageResult;
+        err = pageErr;
+      }
+
       if (cancelled) return;
 
       if (err) {
@@ -184,12 +260,50 @@ export function TaskList() {
     return () => {
       cancelled = true;
     };
-  }, [page, reloadToken]);
+  }, [
+    page,
+    reloadToken,
+    statusFilter,
+    startDate,
+    endDate,
+    dateRangeActive,
+    dateRangeInvalid,
+    user?.id,
+  ]);
 
   function goToPage(next: number) {
     setLoading(true);
     setEditingId(null);
     setPage(next);
+  }
+
+  function setFilterStatus(next: StatusFilter) {
+    setLoading(true);
+    setEditingId(null);
+    setPage(0);
+    setStatusFilter(next);
+  }
+
+  function onStartDateChange(value: string) {
+    setLoading(true);
+    setEditingId(null);
+    setPage(0);
+    setStartDate(value);
+  }
+
+  function onEndDateChange(value: string) {
+    setLoading(true);
+    setEditingId(null);
+    setPage(0);
+    setEndDate(value);
+  }
+
+  function clearDates() {
+    setLoading(true);
+    setEditingId(null);
+    setPage(0);
+    setStartDate("");
+    setEndDate("");
   }
 
   function refreshList(resetToFirstPage = false) {
@@ -280,14 +394,94 @@ export function TaskList() {
     <div className="w-full">
       <CreateTaskForm onCreated={() => refreshList(true)} />
 
+      <div className="mb-4 flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+            Status
+          </span>
+          {(
+            [
+              ["all", "All"],
+              ["open", "Open"],
+              ["done", "Done"],
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setFilterStatus(value)}
+              className={
+                statusFilter === value
+                  ? "rounded-full bg-zinc-900 px-3 py-1 text-xs font-medium text-white dark:bg-zinc-100 dark:text-zinc-900"
+                  : "rounded-full border border-zinc-300 px-3 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+              }
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-end gap-3">
+          <div>
+            <label
+              htmlFor="filter-start"
+              className="block text-xs font-medium text-zinc-500"
+            >
+              Due from
+            </label>
+            <input
+              id="filter-start"
+              type="date"
+              value={startDate}
+              onChange={(e) => onStartDateChange(e.target.value)}
+              className="mt-1 rounded-md border border-zinc-300 px-2 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="filter-end"
+              className="block text-xs font-medium text-zinc-500"
+            >
+              Due to
+            </label>
+            <input
+              id="filter-end"
+              type="date"
+              value={endDate}
+              onChange={(e) => onEndDateChange(e.target.value)}
+              className="mt-1 rounded-md border border-zinc-300 px-2 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+            />
+          </div>
+          {(startDate || endDate) && (
+            <button
+              type="button"
+              onClick={clearDates}
+              className="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-medium dark:border-zinc-700"
+            >
+              Clear dates
+            </button>
+          )}
+          {dateRangeActive && (
+            <p className="text-xs text-zinc-500">
+              Date range uses a non-paged API (single list).
+            </p>
+          )}
+        </div>
+      </div>
+
       <div className="mb-3 flex items-baseline justify-between gap-4">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
           Your tasks
         </h2>
         {!loading && !error && (
           <p className="text-xs text-zinc-500">
-            {totalElements} total · page {page + 1}
-            {totalPages > 0 ? ` of ${totalPages}` : ""}
+            {totalElements} total
+            {!dateRangeActive && (
+              <>
+                {" "}
+                · page {page + 1}
+                {totalPages > 0 ? ` of ${totalPages}` : ""}
+              </>
+            )}
           </p>
         )}
       </div>
@@ -364,7 +558,7 @@ export function TaskList() {
         )}
       </div>
 
-      {!error && totalPages > 1 && (
+      {!error && !dateRangeActive && totalPages > 1 && (
         <div className="mt-4 flex items-center justify-end gap-2">
           <button
             type="button"

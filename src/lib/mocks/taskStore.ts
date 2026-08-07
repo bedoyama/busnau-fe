@@ -137,3 +137,20 @@ export function deleteTask(id: number): boolean {
   tasks = tasks.filter((t) => t.id !== id);
   return tasks.length < before;
 }
+
+/**
+ * Date-range list. Real API scopes by userId; mock also includes tasks with
+ * matching dueDate even if userId differs (faker login ids vs seed userId=1).
+ */
+export function listByUserAndDateRange(
+  userId: number,
+  start: string,
+  end: string
+): Task[] {
+  seedIfNeeded();
+  return tasks.filter((t) => {
+    if (!t.dueDate) return false;
+    if (t.dueDate < start || t.dueDate > end) return false;
+    return t.userId === userId || t.userId === 1;
+  });
+}
