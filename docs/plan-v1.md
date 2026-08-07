@@ -78,10 +78,9 @@ Non-goals for v1: full design system, OAuth, offline-first, native apps.
 
 ### Commit 1.2 — `feat(auth): login and register pages`
 
-- Forms (Zod): login, register
-- Call real paths `/api/auth/login`, `/api/users`
-- Success → save tokens, redirect to tasks
-- MSW: login/register handlers match regenerated OpenAPI
+- `authService` + Zod forms at `/login`, `/register`
+- Register then auto-login for tokens; `setSession` → `/tasks` placeholder
+- MSW: existing Orval login/register handlers
 
 ### Commit 1.3 — `feat(auth): session provider and protected routes`
 
