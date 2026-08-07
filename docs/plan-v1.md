@@ -112,9 +112,9 @@ Non-goals for v1: full design system, OAuth, offline-first, native apps.
 
 ### Commit 2.3 — `feat(tasks): update and complete (PATCH)`
 
-- Toggle completed + edit title/description/dueDate
-- `PATCH /api/tasks/{id}`
-- MSW: patch
+- Click status chip to toggle completed; inline Edit form for title/description/due
+- Optimistic local row patch after `PATCH /api/tasks/{id}`
+- MSW: taskStore update
 
 ### Commit 2.4 — `feat(tasks): delete`
 

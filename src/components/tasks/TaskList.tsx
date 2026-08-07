@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { taskService } from "@/api/taskService";
 import type { PageTask } from "@/lib/model/pageTask";
 import type { Task } from "@/lib/model/task";
@@ -13,28 +13,127 @@ function formatDueDate(dueDate: Task["dueDate"]): string {
   return dueDate;
 }
 
-function TaskRow({ task }: { task: Task }) {
+type EditFields = { title: string; description: string; dueDate: string };
+
+function TaskEditForm({
+  task,
+  busy,
+  onCancel,
+  onSave,
+}: {
+  task: Task;
+  busy: boolean;
+  onCancel: () => void;
+  onSave: (fields: EditFields) => void;
+}) {
+  const [title, setTitle] = useState(task.title);
+  const [description, setDescription] = useState(task.description ?? "");
+  const [dueDate, setDueDate] = useState(task.dueDate ?? "");
+
+  function submitEdit(e: FormEvent) {
+    e.preventDefault();
+    onSave({ title, description, dueDate });
+  }
+
+  return (
+    <tr className="border-b border-zinc-100 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
+      <td colSpan={5} className="px-4 py-3">
+        <form onSubmit={submitEdit} className="grid gap-2 sm:grid-cols-4">
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+            className="rounded-md border border-zinc-300 px-2 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-950 sm:col-span-2"
+            placeholder="Title"
+          />
+          <input
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="rounded-md border border-zinc-300 px-2 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-950 sm:col-span-2"
+            placeholder="Description"
+          />
+          <input
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            className="rounded-md border border-zinc-300 px-2 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+          />
+          <div className="flex gap-2 sm:col-span-3">
+            <button
+              type="submit"
+              disabled={busy}
+              className="rounded-md bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
+            >
+              {busy ? "Saving…" : "Save"}
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={onCancel}
+              className="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-medium dark:border-zinc-700"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </td>
+    </tr>
+  );
+}
+
+function TaskRow({
+  task,
+  busy,
+  onToggleComplete,
+  onStartEdit,
+}: {
+  task: Task;
+  busy: boolean;
+  onToggleComplete: (task: Task) => void;
+  onStartEdit: (task: Task) => void;
+}) {
   return (
     <tr className="border-b border-zinc-100 last:border-0 dark:border-zinc-800">
       <td className="px-4 py-3 text-sm font-medium text-zinc-900 dark:text-zinc-50">
         {task.title}
+        {task.description ? (
+          <p className="mt-0.5 text-xs font-normal text-zinc-500">{task.description}</p>
+        ) : null}
       </td>
-      <td className="px-4 py-3 text-sm text-zinc-600 dark:text-zinc-400">
-        {task.completed ? (
-          <span className="inline-flex rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-            Done
-          </span>
-        ) : (
-          <span className="inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-200">
-            Open
-          </span>
-        )}
+      <td className="px-4 py-3 text-sm">
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => onToggleComplete(task)}
+          className="disabled:opacity-50"
+          title="Toggle completed"
+        >
+          {task.completed ? (
+            <span className="inline-flex rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+              Done
+            </span>
+          ) : (
+            <span className="inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-200">
+              Open
+            </span>
+          )}
+        </button>
       </td>
       <td className="px-4 py-3 text-sm text-zinc-600 dark:text-zinc-400">
         {formatDueDate(task.dueDate)}
       </td>
       <td className="px-4 py-3 text-sm text-zinc-600 dark:text-zinc-400">
         {task.userId ?? "—"}
+      </td>
+      <td className="px-4 py-3 text-right text-sm">
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => onStartEdit(task)}
+          className="text-xs font-medium text-zinc-700 underline-offset-2 hover:underline disabled:opacity-50 dark:text-zinc-300"
+        >
+          Edit
+        </button>
       </td>
     </tr>
   );
@@ -46,6 +145,9 @@ export function TaskList() {
   const [data, setData] = useState<PageTask | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -74,15 +176,63 @@ export function TaskList() {
 
   function goToPage(next: number) {
     setLoading(true);
+    setEditingId(null);
     setPage(next);
   }
 
   function refreshList(resetToFirstPage = false) {
     setLoading(true);
+    setEditingId(null);
     if (resetToFirstPage) {
       setPage(0);
     }
     setReloadToken((n) => n + 1);
+  }
+
+  function patchLocalTask(updated: Task) {
+    setData((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        content: prev.content.map((t) => (t.id === updated.id ? updated : t)),
+      };
+    });
+  }
+
+  async function onToggleComplete(task: Task) {
+    setActionError(null);
+    setBusyId(task.id);
+    const [updated, err] = await taskService.updateTask(task.id, {
+      completed: !task.completed,
+    });
+    setBusyId(null);
+    if (err || !updated) {
+      setActionError(err ?? "Failed to update task");
+      return;
+    }
+    patchLocalTask(updated);
+  }
+
+  async function onSaveEdit(task: Task, fields: EditFields) {
+    const title = fields.title.trim();
+    if (!title) {
+      setActionError("Title is required");
+      return;
+    }
+    setActionError(null);
+    setBusyId(task.id);
+    const [updated, err] = await taskService.updateTask(task.id, {
+      title,
+      description: fields.description.trim() || null,
+      dueDate: fields.dueDate || null,
+    });
+    setBusyId(null);
+    if (err || !updated) {
+      setActionError(err ?? "Failed to update task");
+      return;
+    }
+    patchLocalTask(updated);
+    setEditingId(null);
   }
 
   const totalPages = data?.totalPages ?? 0;
@@ -105,6 +255,15 @@ export function TaskList() {
           </p>
         )}
       </div>
+
+      {actionError && (
+        <div
+          className="mb-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-800 dark:bg-red-950 dark:text-red-300"
+          role="alert"
+        >
+          {actionError}
+        </div>
+      )}
 
       <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
         {loading && (
@@ -132,19 +291,36 @@ export function TaskList() {
 
         {!loading && !error && content.length > 0 && (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[32rem] text-left">
+            <table className="w-full min-w-[36rem] text-left">
               <thead className="border-b border-zinc-200 bg-zinc-50 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">
                 <tr>
                   <th className="px-4 py-3">Title</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Due</th>
                   <th className="px-4 py-3">User id</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {content.map((task) => (
-                  <TaskRow key={task.id} task={task} />
-                ))}
+                {content.map((task) =>
+                  editingId === task.id ? (
+                    <TaskEditForm
+                      key={`edit-${task.id}`}
+                      task={task}
+                      busy={busyId === task.id}
+                      onCancel={() => setEditingId(null)}
+                      onSave={(fields) => void onSaveEdit(task, fields)}
+                    />
+                  ) : (
+                    <TaskRow
+                      key={task.id}
+                      task={task}
+                      busy={busyId === task.id}
+                      onToggleComplete={onToggleComplete}
+                      onStartEdit={(t) => setEditingId(t.id)}
+                    />
+                  )
+                )}
               </tbody>
             </table>
           </div>
