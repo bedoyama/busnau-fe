@@ -8,11 +8,11 @@
 | # | Commit | Status |
 |---|--------|--------|
 | 1 | Refresh OpenAPI | done |
-| 2 | Regenerate Orval models + MSW | ready |
-| 3 | Page date-range (and by-user) in services/UI/mocks | pending |
-| 4 | Show createdAt / updatedAt | pending |
-| 5 | logout-all | pending |
-| 6 | E2E + dual-mode docs | pending |
+| 2 | Regenerate Orval models + MSW | done |
+| 3 | Page date-range in services/UI/mocks | done |
+| 4 | Show createdAt / updatedAt | done |
+| 5 | logout-all | done |
+| 6 | E2E + dual-mode docs | done |
 
 ## Commit 1 notes
 

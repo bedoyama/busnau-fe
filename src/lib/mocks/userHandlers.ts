@@ -4,6 +4,7 @@ import type { LoginRequest } from "@/lib/model/loginRequest";
 import { UserRole } from "@/lib/model/userRole";
 import {
   createUser,
+  findUserById,
   findUserByUsername,
   getSessionUser,
   listUsersPage,
@@ -12,6 +13,18 @@ import {
 
 function clearMockSession(): void {
   setSessionUser(null);
+}
+
+/** Resolve mock user from in-memory session or `Authorization: Bearer mock-access-<id>`. */
+function resolveSessionUser(request: Request) {
+  const session = getSessionUser();
+  if (session) return session;
+  const auth = request.headers.get("Authorization") ?? "";
+  const match = /^Bearer\s+mock-access-(\d+)$/i.exec(auth);
+  if (!match) return null;
+  const user = findUserById(Number(match[1]));
+  if (user) setSessionUser(user);
+  return user ?? null;
 }
 
 function parsePage(url: URL): { page: number; size: number } {
@@ -63,10 +76,9 @@ export const userHandlers = [
     return new HttpResponse(null, { status: 204 });
   }),
 
-  http.get("*/api/users/me", () => {
-    const session = getSessionUser();
+  http.get("*/api/users/me", ({ request }) => {
+    const session = resolveSessionUser(request);
     if (!session) {
-      // Bootstrap without prior login mock call — anonymous-looking 401
       return HttpResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     return HttpResponse.json(session);

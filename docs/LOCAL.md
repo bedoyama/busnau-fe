@@ -118,21 +118,20 @@ prefixUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
 and sends `Authorization: Bearer <token>` from `localStorage.token` when present.
 
-### Can it talk to the backend on this machine **right now**?
+### Dual-mode readiness (plan-v3 aligned)
 
-**Short answer:** yes for networking, not yet as a polished app.
-
-Same host is the intended setup: Next on `:3000`, Spring on `:8080`. The ky client already defaults to `http://localhost:8080`. What still blocks a smooth browser integration:
+Same host is the intended setup: Next on `:3000`, Spring on `:8080`.
 
 | Check | Status |
 |-------|--------|
-| Default API base URL | `http://localhost:8080` — correct for co-located API |
-| Disable mocks | **Required** (`NEXT_PUBLIC_USE_MOCKS=false`) or MSW intercepts and you never hit Java |
-| Auth UI | Login page not built yet; for manual smoke set `localStorage.token` to an API `accessToken` |
-| OpenAPI / MSW freshness | **Stale** vs current API (missing PATCH, logout, `/me`, **Page** wrappers, etc.) |
-| CORS | Set on API: `app.cors.allowed-origins=http://localhost:3000` (see `application-local.properties.example`). Restart API after changing. |
+| Default API base URL | `http://localhost:8080` |
+| Disable mocks | **Required** for real mode (`NEXT_PUBLIC_USE_MOCKS=false`) or MSW intercepts Java |
+| Auth UI | Login, register, session bootstrap via `/api/users/me` |
+| OpenAPI / Orval | plan-v3: `TaskResponse` Instant timestamps, paged lists, logout-all |
+| MSW | Stateful `taskStore` / `userStore` + custom handlers ahead of Orval faker |
+| CORS | API: `app.cors.allowed-origins=http://localhost:3000` (see `application-local.properties.example`) |
 
-**Practical answer:** curl/Postman against the API works; FE→API in the browser needs `USE_MOCKS=false` + API CORS for `:3000` + refreshed OpenAPI/MSW + a login that stores `accessToken` under `localStorage.token`.
+**Tokens in localStorage:** `token` (access) + `refreshToken` (see `src/api/authStorage.ts`).
 
 ### Quick real-backend smoke (API only)
 
@@ -142,11 +141,13 @@ curl -s -X POST http://localhost:8080/api/users \
   -H 'Content-Type: application/json' \
   -d '{"username":"fe_dev","password":"password1"}'
 
-# login — use accessToken as Bearer in FE localStorage key "token"
+# login — paste accessToken into FE after sign-in (or just use the Login page)
 curl -s -X POST http://localhost:8080/api/auth/login \
   -H 'Content-Type: application/json' \
   -d '{"username":"fe_dev","password":"password1"}'
 ```
+
+Optional API script from busnau-api: `./scripts/smoke.sh` (when present).
 
 ---
 
@@ -165,33 +166,46 @@ If both seem “wrong,” check the browser Network tab:
 
 ---
 
-## Smoke checklist — auth (Phase 1)
+## Dual-mode smoke checklist
 
-Run with `pnpm dev` (mocks **on** by default). Optional second pass with real API (`USE_MOCKS=false` + API on `:8080` + CORS).
+Run **twice**: mocks on (`pnpm dev` default), then real API (`USE_MOCKS=false` + API on `:8080` + CORS).
+
+### Auth
 
 | # | Step | Expected |
 |---|------|----------|
-| 1 | Open [http://localhost:3000/tasks](http://localhost:3000/tasks) while signed out | Redirect to `/login` |
-| 2 | Open `/login`, submit empty form | Zod field errors (username/password required) |
-| 3 | Sign in with any credentials (mock) or real user (API) | Redirect to `/tasks`; Application → Local Storage has `token` + `refreshToken` |
-| 4 | On `/tasks` | Shows username (and role); **Log out** visible |
-| 5 | Hard refresh `/tasks` while signed in | Stays on tasks (session bootstrap via token + `/api/users/me`) |
-| 6 | Open `/login` while signed in | Redirect to `/tasks` (`GuestOnly`) |
-| 7 | **Log out** | Clears storage; lands on `/login`; `/tasks` again redirects to login |
-| 8 | `/register` with password &lt; 8 chars | Client validation error |
-| 9 | `/register` with valid username/password | Account created, auto sign-in, `/tasks` |
-| 10 | Optional: [http://localhost:3000/testhandlers](http://localhost:3000/testhandlers) | Health + paged users/tasks JSON under mocks |
+| 1 | Open `/tasks` while signed out | Redirect to `/login` |
+| 2 | `/login` empty submit | Zod field errors |
+| 3 | Sign in (mock: any user/password; real: registered user or seed `admin`/`admin123`) | `/tasks`; Local Storage has `token` + `refreshToken` |
+| 4 | Header shows username · role; **Log out** works | Clears storage → `/login` |
+| 5 | Hard refresh `/tasks` while signed in | Stays signed in (`/api/users/me`) |
+| 6 | `/register` valid user | Auto sign-in → `/tasks` |
+| 7 | `/account` → **Log out everywhere** | Confirms; all refresh tokens revoked (real); lands on `/login` |
+
+### Tasks (plan-v3)
+
+| # | Step | Expected |
+|---|------|----------|
+| 8 | Task table columns | Title, Status, Due, **Created**, **Updated**, User id, Actions |
+| 9 | Create a task | Appears on page 1; Created/Updated filled (not "—") |
+| 10 | Toggle status / edit / delete | Mutations succeed; list refreshes |
+| 11 | Status filter Open / Done | Paged lists from completed endpoints |
+| 12 | Due from / Due to both set | Date-range **paged** (`page`/`size`); total · page N of M still shown |
+| 13 | Pagination Previous / Next | Works for all list modes including date-range |
+
+### Real-mode only
+
+| # | Step | Expected |
+|---|------|----------|
+| R1 | Network tab | Hits `localhost:8080` (not only Service Worker) |
+| R2 | Wrong password | API error on login form |
+| R3 | CORS failure | Set `app.cors.allowed-origins=http://localhost:3000`, restart API |
+| R4 | After logout-all | Refresh on another tab/device fails until re-login |
 
 **Mock-mode notes**
 
-- Login always succeeds with fake JWTs (Orval/MSW); `/me` returns a random user — username may not match what you typed.
-- Real mode: use a registered user (or seeded `admin` / `admin123` when API seed applies); `/me` matches the token.
-
-**Real-mode extra checks**
-
-- Network tab hits `localhost:8080` (not only Service Worker).
-- Wrong password → API error string in the form (`error` body field).
-- If browser blocks requests → ensure API has `app.cors.allowed-origins=http://localhost:3000` and was restarted.
+- Custom `userHandlers` create/login users by username (`admin` → ADMIN).
+- `taskStore` seeds ~23 tasks with due dates and Instant timestamps; create/update set `createdAt`/`updatedAt`.
 
 ---
 
@@ -204,9 +218,16 @@ pnpm test:e2e          # headless Chromium
 pnpm test:e2e:ui       # interactive UI
 ```
 
-Coverage today: login → create task; unauthenticated `/tasks` → `/login`.
+Coverage (`e2e/auth-tasks.spec.ts`):
+
+- Login → create task (Created/Updated columns present)
+- Date-range filter keeps paged chrome
+- Account **Log out everywhere** clears session
+- Guest `/tasks` → `/login`
 
 First machine: `pnpm exec playwright install chromium` (browsers are not in git).
+
+**Real-backend E2E is manual** (checklist above). Playwright always forces mocks so CI stays free of Java/Postgres.
 
 ## Useful scripts
 

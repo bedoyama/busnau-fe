@@ -78,3 +78,8 @@ export function findUserByUsername(username: string): User | undefined {
   seedIfNeeded();
   return users.find((u) => u.username === username);
 }
+
+export function findUserById(id: number): User | undefined {
+  seedIfNeeded();
+  return users.find((u) => u.id === id);
+}

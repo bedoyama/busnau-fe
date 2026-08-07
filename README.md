@@ -46,8 +46,9 @@ Avoid `npm install` so lockfiles do not diverge.
 
 | Doc | Purpose |
 |-----|---------|
-| [docs/LOCAL.md](./docs/LOCAL.md) | Mock vs real backend, env, auth smoke checklist |
-| [docs/plan-v1.md](./docs/plan-v1.md) | Roadmap and dual-mode PR checklist |
+| [docs/LOCAL.md](./docs/LOCAL.md) | Dual-mode (MSW vs API), env, full smoke checklist |
+| [docs/plan-v1.md](./docs/plan-v1.md) | Original roadmap / PR checklist |
+| [docs/plan-v2-align-api.md](./docs/plan-v2-align-api.md) | Align FE to busnau-api plan-v3 (done) |
 
 ## Quick start (mock mode — default)
 
@@ -63,8 +64,8 @@ No Java/Postgres required. Mock login: any password; username **`admin`** → AD
 |-------|--------|
 | `/` | Landing / app shell |
 | `/login`, `/register` | Auth |
-| `/tasks` | Task CRUD + filters |
-| `/account` | Profile + change password |
+| `/tasks` | Task CRUD, status/date filters, Created/Updated (plan-v3 Instant) |
+| `/account` | Profile, change password, **log out everywhere** |
 | `/admin/users` | ADMIN only |
 | `/testhandlers` | MSW smoke (dev nav only; URL still works if you know it) |
 
