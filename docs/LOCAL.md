@@ -165,6 +165,36 @@ If both seem “wrong,” check the browser Network tab:
 
 ---
 
+## Smoke checklist — auth (Phase 1)
+
+Run with `pnpm dev` (mocks **on** by default). Optional second pass with real API (`USE_MOCKS=false` + API on `:8080` + CORS).
+
+| # | Step | Expected |
+|---|------|----------|
+| 1 | Open [http://localhost:3000/tasks](http://localhost:3000/tasks) while signed out | Redirect to `/login` |
+| 2 | Open `/login`, submit empty form | Zod field errors (username/password required) |
+| 3 | Sign in with any credentials (mock) or real user (API) | Redirect to `/tasks`; Application → Local Storage has `token` + `refreshToken` |
+| 4 | On `/tasks` | Shows username (and role); **Log out** visible |
+| 5 | Hard refresh `/tasks` while signed in | Stays on tasks (session bootstrap via token + `/api/users/me`) |
+| 6 | Open `/login` while signed in | Redirect to `/tasks` (`GuestOnly`) |
+| 7 | **Log out** | Clears storage; lands on `/login`; `/tasks` again redirects to login |
+| 8 | `/register` with password &lt; 8 chars | Client validation error |
+| 9 | `/register` with valid username/password | Account created, auto sign-in, `/tasks` |
+| 10 | Optional: [http://localhost:3000/testhandlers](http://localhost:3000/testhandlers) | Health + paged users/tasks JSON under mocks |
+
+**Mock-mode notes**
+
+- Login always succeeds with fake JWTs (Orval/MSW); `/me` returns a random user — username may not match what you typed.
+- Real mode: use a registered user (or seeded `admin` / `admin123` when API seed applies); `/me` matches the token.
+
+**Real-mode extra checks**
+
+- Network tab hits `localhost:8080` (not only Service Worker).
+- Wrong password → API error string in the form (`error` body field).
+- If browser blocks requests → CORS on Spring for `http://localhost:3000` (see Mode 2 above).
+
+---
+
 ## Useful scripts
 
 ```bash

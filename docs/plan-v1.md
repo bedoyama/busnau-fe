@@ -90,7 +90,8 @@ Non-goals for v1: full design system, OAuth, offline-first, native apps.
 
 ### Commit 1.4 — `test/smoke: auth flows mock mode`
 
-- Manual checklist or minimal Playwright/Cypress later; at least document steps in LOCAL.md
+- Manual checklist in [LOCAL.md](./LOCAL.md) (auth section)
+- Playwright later (optional)
 
 **Success:** Register/login/logout works in **mock** and **real** modes (with API up).
 
