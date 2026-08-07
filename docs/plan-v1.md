@@ -142,9 +142,8 @@ Non-goals for v1: full design system, OAuth, offline-first, native apps.
 
 ### Commit 3.2 — `feat(admin): user list (paged, ADMIN only)`
 
-- Guard by role from `/me`
-- `GET /api/users?page=&size=`
-- MSW
+- `RequireAdmin` + `/admin/users` paged table
+- Stable MSW user store; login as `admin` → ADMIN (others → USER)
 
 ### Commit 3.3 (optional) — `feat(admin): create user with role`
 
