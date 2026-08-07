@@ -58,9 +58,10 @@ Non-goals for v1: full design system, OAuth, offline-first, native apps.
 
 ### Commit 0.4 — `fix(api): Page types for list endpoints`
 
-- Types for Spring `Page<T>` (or generated schema if present)
-- Update `userService` and any task services: parse `content`, expose pagination params
-- MSW handlers return page-shaped JSON for GET lists
+- Generated `PageUser` / `PageTask` from OpenAPI
+- `userService.getAllUsers(params?)` → `PageUser`; `taskService` with paged list + CRUD stubs
+- `/testhandlers` shows page summaries (`content` / `totalElements`)
+- MSW already page-shaped via Orval (0.3)
 
 **Success:** Mock mode green; real mode types match live API for lists.
 
