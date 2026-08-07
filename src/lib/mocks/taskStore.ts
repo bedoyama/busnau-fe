@@ -11,11 +11,19 @@ let nextId = 1;
 let tasks: Task[] = [];
 let seeded = false;
 
+/** ISO-8601 instant aligned with Spring Instant / plan-v3 TaskResponse. */
+function nowIso(): string {
+  return new Date().toISOString();
+}
+
 function seedIfNeeded(): void {
   if (seeded) return;
   seeded = true;
   const seededTasks: Task[] = [];
   for (let i = 1; i <= 23; i++) {
+    // Stable-ish seed times so mocks don't look identical every row
+    const created = new Date(Date.UTC(2026, 7, 1, 12, 0, 0) + i * 3_600_000);
+    const createdAt = created.toISOString();
     seededTasks.push({
       id: nextId++,
       title: `Seed task ${i}`,
@@ -26,6 +34,8 @@ function seedIfNeeded(): void {
           : null,
       completed: i % 5 === 0,
       userId: 1,
+      createdAt,
+      updatedAt: createdAt,
     });
   }
   tasks = seededTasks;
@@ -95,6 +105,7 @@ export function getTask(id: number): Task | undefined {
 
 export function createTask(body: CreateTaskRequest): Task {
   seedIfNeeded();
+  const ts = nowIso();
   const task: Task = {
     id: nextId++,
     title: body.title,
@@ -102,6 +113,8 @@ export function createTask(body: CreateTaskRequest): Task {
     dueDate: body.dueDate ?? null,
     completed: body.completed ?? false,
     userId: body.userId ?? 1,
+    createdAt: ts,
+    updatedAt: ts,
   };
   // Newest first so create shows on page 0
   tasks = [task, ...tasks];
@@ -126,6 +139,7 @@ export function updateTask(
       body.completed !== undefined && body.completed !== null
         ? body.completed
         : current.completed,
+    updatedAt: nowIso(),
   };
   tasks = [...tasks.slice(0, idx), next, ...tasks.slice(idx + 1)];
   return next;

@@ -17,6 +17,20 @@ function formatDueDate(dueDate: Task["dueDate"]): string {
   return dueDate;
 }
 
+/** Format plan-v3 Instant (ISO-8601) for list display. */
+function formatInstant(value?: string): string {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 type EditFields = { title: string; description: string; dueDate: string };
 
 function TaskEditForm({
@@ -41,7 +55,7 @@ function TaskEditForm({
 
   return (
     <tr className="border-b border-zinc-100 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
-      <td colSpan={5} className="px-4 py-3">
+      <td colSpan={7} className="px-4 py-3">
         <form onSubmit={submitEdit} className="grid gap-2 sm:grid-cols-4">
           <input
             value={title}
@@ -128,6 +142,18 @@ function TaskRow({
       <td className="px-4 py-3 text-sm text-zinc-600 dark:text-zinc-400">
         {formatDueDate(task.dueDate)}
       </td>
+      <td
+        className="px-4 py-3 text-xs text-zinc-500 dark:text-zinc-400"
+        title={task.createdAt}
+      >
+        {formatInstant(task.createdAt)}
+      </td>
+      <td
+        className="px-4 py-3 text-xs text-zinc-500 dark:text-zinc-400"
+        title={task.updatedAt}
+      >
+        {formatInstant(task.updatedAt)}
+      </td>
       <td className="px-4 py-3 text-sm text-zinc-600 dark:text-zinc-400">
         {task.userId ?? "—"}
       </td>
@@ -163,8 +189,6 @@ export function TaskList() {
   const [endDate, setEndDate] = useState("");
   const [actionError, setActionError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
-
-  const dateRangeActive = Boolean(startDate && endDate);
 
   const tasksQuery = useTasksQuery({
     page,
@@ -349,11 +373,6 @@ export function TaskList() {
               Clear dates
             </button>
           )}
-          {dateRangeActive && (
-            <p className="text-xs text-zinc-500">
-              Date range uses a non-paged API (single list).
-            </p>
-          )}
         </div>
       </div>
 
@@ -363,14 +382,8 @@ export function TaskList() {
         </h2>
         {!loading && !error && (
           <p className="text-xs text-zinc-500">
-            {totalElements} total
-            {!dateRangeActive && (
-              <>
-                {" "}
-                · page {page + 1}
-                {totalPages > 0 ? ` of ${totalPages}` : ""}
-              </>
-            )}
+            {totalElements} total · page {page + 1}
+            {totalPages > 0 ? ` of ${totalPages}` : ""}
           </p>
         )}
       </div>
@@ -410,12 +423,14 @@ export function TaskList() {
 
         {!loading && !error && content.length > 0 && (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[36rem] text-left">
+            <table className="w-full min-w-[48rem] text-left">
               <thead className="border-b border-zinc-200 bg-zinc-50 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">
                 <tr>
                   <th className="px-4 py-3">Title</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Due</th>
+                  <th className="px-4 py-3">Created</th>
+                  <th className="px-4 py-3">Updated</th>
                   <th className="px-4 py-3">User id</th>
                   <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
@@ -447,7 +462,7 @@ export function TaskList() {
         )}
       </div>
 
-      {!error && !dateRangeActive && totalPages > 1 && (
+      {!error && totalPages > 1 && (
         <div className="mt-4 flex items-center justify-end gap-2">
           <button
             type="button"
