@@ -4,9 +4,10 @@ import { faker } from "@faker-js/faker";
  * Orval codegen for busnau-api.
  *
  * Canonical outputs (single source of truth — do not use top-level `lib/`):
- * - Models:  src/lib/model/*
- * - Client:  src/lib/mocks/endpoints.ts (split mode; we use ky elsewhere for now)
- * - MSW:     src/lib/mocks/endpoints.msw.ts
+ * - Models:     src/lib/model/*
+ * - Client:     src/lib/mocks/generated/endpoints.ts (ky is used elsewhere for now)
+ * - MSW:        src/lib/mocks/generated/endpoints.msw.ts
+ * - Scaffold:   src/lib/mocks/{handlers,browser,node,index}.ts  (hand-written; not cleaned)
  *
  * Refresh OpenAPI, then regenerate:
  *   pnpm generate:api
@@ -18,10 +19,11 @@ module.exports = {
     input: "./openapi/swagger.json",
     output: {
       mode: "split",
-      target: "./src/lib/mocks/endpoints.ts",
+      target: "./src/lib/mocks/generated/endpoints.ts",
       schemas: "./src/lib/model",
       client: "fetch",
       mock: true,
+      // Only cleans the `target` directory (generated/), not hand-written mock scaffold
       clean: true,
       override: {
         mock: {
@@ -36,8 +38,8 @@ module.exports = {
           },
           stringMin: 4,
           stringMax: 32,
-          delay: () => faker.number.int({ min: 50, max: 300 }),
-          delayFunctionLazyExecute: true,
+          // Fixed delay — function + delayFunctionLazyExecute emits broken `_faker` refs in orval 8.5
+          delay: 100,
         },
       },
     },

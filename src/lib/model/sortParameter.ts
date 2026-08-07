@@ -6,16 +6,7 @@
  * OpenAPI spec version: v1
  */
 
-export interface CreateTaskRequest {
-  title: string;
-  /** @nullable */
-  description?: string | null;
-  /** @nullable */
-  dueDate?: string | null;
-  completed?: boolean;
-  /**
-   * Optional; ADMIN may assign to another user
-   * @nullable
-   */
-  userId?: number | null;
-}
+/**
+ * Sorting criteria in the format: property(,asc|desc). Multiple sort params allowed.
+ */
+export type SortParameter = string[];

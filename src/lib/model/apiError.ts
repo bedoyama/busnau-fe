@@ -5,17 +5,9 @@
  * Task manager API. Synced from busnau-api controllers + live response shapes (2026-08-07). Live /v3/api-docs was blocked by security matcher (exact path); re-export after API fix when available.
  * OpenAPI spec version: v1
  */
+import type { ApiErrorDetails } from './apiErrorDetails';
 
-export interface CreateTaskRequest {
-  title: string;
-  /** @nullable */
-  description?: string | null;
-  /** @nullable */
-  dueDate?: string | null;
-  completed?: boolean;
-  /**
-   * Optional; ADMIN may assign to another user
-   * @nullable
-   */
-  userId?: number | null;
+export interface ApiError {
+  error?: string;
+  details?: ApiErrorDetails;
 }

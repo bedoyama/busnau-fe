@@ -1,16 +1,16 @@
 import { http } from "msw";
-import { getOpenAPIDefinitionMock } from '@/lib/mocks/endpoints.msw';
+import { getBusnauApiMock } from "@/lib/mocks/generated/endpoints.msw";
 
-// Placeholder — replace with your real endpoints
+/**
+ * MSW handler list used by browser + Node workers.
+ * Orval regenerates `generated/endpoints.msw.ts`; keep custom handlers here.
+ */
 export const handlers = [
-  // Example placeholder
   http.get("*/api/health", () => {
     return new Response(JSON.stringify({ status: "ok", mocked: true }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
   }),
-
-  // ... your future Postman-based handlers go here
-    ...getOpenAPIDefinitionMock(),
+  ...getBusnauApiMock(),
 ];

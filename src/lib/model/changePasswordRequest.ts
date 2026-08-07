@@ -6,16 +6,8 @@
  * OpenAPI spec version: v1
  */
 
-export interface CreateTaskRequest {
-  title: string;
-  /** @nullable */
-  description?: string | null;
-  /** @nullable */
-  dueDate?: string | null;
-  completed?: boolean;
-  /**
-   * Optional; ADMIN may assign to another user
-   * @nullable
-   */
-  userId?: number | null;
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  /** @minLength 8 */
+  newPassword: string;
 }

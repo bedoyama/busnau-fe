@@ -64,7 +64,8 @@ Whenever **busnau-api** adds or changes endpoints:
    If that returns **401**, Spring Security is matching `/v3/api-docs/**` but not the exact path `/v3/api-docs` — fix permit matchers on the API (or edit `openapi/swagger.json` by hand from controllers + a live `curl` of sample responses, as done for Phase 0.2).
 2. Orval outputs land under **`src/` only** (see `orval.config.ts`):
    - models → `src/lib/model/`
-   - MSW → `src/lib/mocks/endpoints.msw.ts`
+   - generated client + MSW → `src/lib/mocks/generated/`
+   - hand-written scaffold → `src/lib/mocks/{handlers,browser,node,index}.ts`
    - Do **not** use the legacy top-level `lib/mocks/generated/` tree.
 3. Regenerate:
    ```bash

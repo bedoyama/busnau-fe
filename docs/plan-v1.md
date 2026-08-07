@@ -51,9 +51,10 @@ Non-goals for v1: full design system, OAuth, offline-first, native apps.
 
 ### Commit 0.3 — `chore: regenerate Orval models and MSW handlers`
 
-- `pnpm generate:api`
-- Fix imports / delete stale duplicates (`lib/mocks/generated` vs `src/lib/model`)
-- Smoke `/testhandlers` under mock mode
+- `pnpm generate:api` → `src/lib/model` + `src/lib/mocks/generated/`
+- Hand-written scaffold kept outside `generated/` so `clean: true` is safe
+- Remove stale top-level `lib/`
+- Wire `handlers.ts` to `getBusnauApiMock()`
 
 ### Commit 0.4 — `fix(api): Page types for list endpoints`
 

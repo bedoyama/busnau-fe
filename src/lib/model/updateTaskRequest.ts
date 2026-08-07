@@ -6,16 +6,16 @@
  * OpenAPI spec version: v1
  */
 
-export interface CreateTaskRequest {
-  title: string;
+/**
+ * Partial update — null/omitted fields are left unchanged
+ */
+export interface UpdateTaskRequest {
+  /** @nullable */
+  title?: string | null;
   /** @nullable */
   description?: string | null;
   /** @nullable */
   dueDate?: string | null;
-  completed?: boolean;
-  /**
-   * Optional; ADMIN may assign to another user
-   * @nullable
-   */
-  userId?: number | null;
+  /** @nullable */
+  completed?: boolean | null;
 }
