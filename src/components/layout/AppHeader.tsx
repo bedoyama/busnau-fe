@@ -46,12 +46,14 @@ export function AppHeader({ title }: Props) {
               Users
             </Link>
           )}
-          <Link
-            href="/testhandlers"
-            className="text-zinc-600 underline-offset-4 hover:underline dark:text-zinc-400"
-          >
-            Handlers
-          </Link>
+          {process.env.NODE_ENV === "development" && (
+            <Link
+              href="/testhandlers"
+              className="text-zinc-600 underline-offset-4 hover:underline dark:text-zinc-400"
+            >
+              Handlers
+            </Link>
+          )}
           <button
             type="button"
             onClick={() => void logout()}
