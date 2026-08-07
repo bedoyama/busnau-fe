@@ -101,10 +101,9 @@ Non-goals for v1: full design system, OAuth, offline-first, native apps.
 
 ### Commit 2.1 — `feat(tasks): list page (paged)`
 
-- Fetch `GET /api/tasks?page=&size=`
-- Table/cards: title, completed, dueDate, userId
-- Loading / empty / error states
-- MSW: paged list
+- `TaskList` + tasks shell: paged table (title, status, due, userId)
+- Loading / empty / error + prev/next
+- MSW: existing Orval paged list
 
 ### Commit 2.2 — `feat(tasks): create task`
 
