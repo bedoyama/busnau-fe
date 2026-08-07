@@ -130,7 +130,7 @@ Same host is the intended setup: Next on `:3000`, Spring on `:8080`. The ky clie
 | Disable mocks | **Required** (`NEXT_PUBLIC_USE_MOCKS=false`) or MSW intercepts and you never hit Java |
 | Auth UI | Login page not built yet; for manual smoke set `localStorage.token` to an API `accessToken` |
 | OpenAPI / MSW freshness | **Stale** vs current API (missing PATCH, logout, `/me`, **Page** wrappers, etc.) |
-| CORS | **Not configured** on busnau-api today. Browser calls from `http://localhost:3000` → `http://localhost:8080` will fail CORS preflight until Spring allows the FE origin (add on the API side; FE cannot fix this alone) |
+| CORS | Set on API: `app.cors.allowed-origins=http://localhost:3000` (see `application-local.properties.example`). Restart API after changing. |
 
 **Practical answer:** curl/Postman against the API works; FE→API in the browser needs `USE_MOCKS=false` + API CORS for `:3000` + refreshed OpenAPI/MSW + a login that stores `accessToken` under `localStorage.token`.
 
@@ -191,7 +191,7 @@ Run with `pnpm dev` (mocks **on** by default). Optional second pass with real AP
 
 - Network tab hits `localhost:8080` (not only Service Worker).
 - Wrong password → API error string in the form (`error` body field).
-- If browser blocks requests → CORS on Spring for `http://localhost:3000` (see Mode 2 above).
+- If browser blocks requests → ensure API has `app.cors.allowed-origins=http://localhost:3000` and was restarted.
 
 ---
 
