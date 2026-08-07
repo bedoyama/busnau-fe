@@ -7,8 +7,8 @@
 
 | # | Commit | Status |
 |---|--------|--------|
-| 1 | Refresh OpenAPI | in progress |
-| 2 | Regenerate Orval models + MSW | pending |
+| 1 | Refresh OpenAPI | done |
+| 2 | Regenerate Orval models + MSW | ready |
 | 3 | Page date-range (and by-user) in services/UI/mocks | pending |
 | 4 | Show createdAt / updatedAt | pending |
 | 5 | logout-all | pending |

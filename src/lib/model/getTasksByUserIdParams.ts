@@ -9,7 +9,7 @@ import type { PageParameter } from './pageParameter';
 import type { SizeParameter } from './sizeParameter';
 import type { SortParameter } from './sortParameter';
 
-export type GetTasksByCompletedParams = {
+export type GetTasksByUserIdParams = {
 /**
  * Zero-based page index
  * @minimum 0
