@@ -21,8 +21,15 @@ export const taskKeys = {
   }) => [...taskKeys.all, "list", filters] as const,
 };
 
-/** Demo-friendly page size so pagination appears after a handful of tasks. */
-const PAGE_SIZE = 5;
+/** Allowed page sizes for the task list control. */
+export const PAGE_SIZE_OPTIONS = [5, 10, 20, 50] as const;
+export type PageSizeOption = (typeof PAGE_SIZE_OPTIONS)[number];
+
+/** Default page size (demo-friendly so pagination appears sooner). */
+export const DEFAULT_PAGE_SIZE: PageSizeOption = 5;
+
+/** Alias used by hooks default and demo seed. */
+const PAGE_SIZE = DEFAULT_PAGE_SIZE;
 
 /** Status filter is client-side on the current page (date-range API has no completed param). */
 function filterPageByStatus(page: PageTask, status: StatusFilter): PageTask {

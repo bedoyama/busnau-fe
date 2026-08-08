@@ -3,10 +3,12 @@
 import { FormEvent, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import {
-  PAGE_SIZE,
+  DEFAULT_PAGE_SIZE,
+  PAGE_SIZE_OPTIONS,
   useDeleteTaskMutation,
   useTasksQuery,
   useUpdateTaskMutation,
+  type PageSizeOption,
   type StatusFilter,
 } from "@/hooks/useTasksQuery";
 import type { Task } from "@/lib/model/task";
@@ -126,18 +128,35 @@ function TaskRow({
           type="button"
           disabled={busy}
           onClick={() => onToggleComplete(task)}
-          className="disabled:opacity-50"
-          title="Toggle completed"
+          aria-pressed={task.completed}
+          aria-label={
+            task.completed
+              ? "Status: Done. Click to mark as Open"
+              : "Status: Open. Click to mark as Done"
+          }
+          title={
+            task.completed
+              ? "Click to mark as Open"
+              : "Click to mark as Done"
+          }
+          className={
+            task.completed
+              ? "inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800 shadow-sm transition hover:border-emerald-500 hover:bg-emerald-100 hover:ring-2 hover:ring-emerald-200/80 disabled:cursor-not-allowed disabled:opacity-50 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 dark:hover:bg-emerald-900 dark:hover:ring-emerald-900"
+              : "inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-900 shadow-sm transition hover:border-amber-500 hover:bg-amber-100 hover:ring-2 hover:ring-amber-200/80 disabled:cursor-not-allowed disabled:opacity-50 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200 dark:hover:bg-amber-900 dark:hover:ring-amber-900"
+          }
         >
-          {task.completed ? (
-            <span className="inline-flex rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-              Done
-            </span>
-          ) : (
-            <span className="inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-200">
-              Open
-            </span>
-          )}
+          <span
+            className={
+              task.completed
+                ? "h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-600 dark:bg-emerald-400"
+                : "h-1.5 w-1.5 shrink-0 rounded-full bg-amber-600 dark:bg-amber-400"
+            }
+            aria-hidden
+          />
+          {task.completed ? "Done" : "Open"}
+          <span className="text-[10px] font-normal opacity-70" aria-hidden>
+            · click
+          </span>
         </button>
       </td>
       <td className="px-4 py-3 text-sm text-zinc-600 dark:text-zinc-400">
@@ -185,6 +204,7 @@ function TaskRow({
 export function TaskList() {
   const { user } = useAuth();
   const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState<PageSizeOption>(DEFAULT_PAGE_SIZE);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -193,7 +213,7 @@ export function TaskList() {
 
   const tasksQuery = useTasksQuery({
     page,
-    size: PAGE_SIZE,
+    size: pageSize,
     status: statusFilter,
     startDate,
     endDate,
@@ -222,6 +242,12 @@ export function TaskList() {
     setEditingId(null);
     setPage(0);
     setStatusFilter(next);
+  }
+
+  function onPageSizeChange(next: PageSizeOption) {
+    setEditingId(null);
+    setPage(0);
+    setPageSize(next);
   }
 
   function onStartDateChange(value: string) {
@@ -384,16 +410,40 @@ export function TaskList() {
         </div>
       </div>
 
-      <div className="mb-3 flex items-baseline justify-between gap-4">
+      <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
           Your tasks
         </h2>
-        {!loading && !error && (
-          <p className="text-xs text-zinc-500">
-            {totalElements} total · page {page + 1}
-            {totalPages > 0 ? ` of ${totalPages}` : ""}
-          </p>
-        )}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <label
+              htmlFor="page-size"
+              className="text-xs font-medium text-zinc-500"
+            >
+              Per page
+            </label>
+            <select
+              id="page-size"
+              value={pageSize}
+              onChange={(e) =>
+                onPageSizeChange(Number(e.target.value) as PageSizeOption)
+              }
+              className="rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+            >
+              {PAGE_SIZE_OPTIONS.map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </select>
+          </div>
+          {!loading && !error && (
+            <p className="text-xs text-zinc-500">
+              {totalElements} total · page {page + 1}
+              {totalPages > 0 ? ` of ${totalPages}` : ""}
+            </p>
+          )}
+        </div>
       </div>
 
       {actionError && (
@@ -435,7 +485,9 @@ export function TaskList() {
               <thead className="border-b border-zinc-200 bg-zinc-50 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">
                 <tr>
                   <th className="px-4 py-3">Title</th>
-                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3" title="Click Open or Done to toggle">
+                    Status
+                  </th>
                   <th className="px-4 py-3">Due</th>
                   <th className="px-4 py-3">Created</th>
                   <th className="px-4 py-3">Updated</th>

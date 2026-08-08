@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { taskService } from "@/api/taskService";
-import { PAGE_SIZE, taskKeys } from "@/hooks/useTasksQuery";
+import { DEFAULT_PAGE_SIZE, taskKeys } from "@/hooks/useTasksQuery";
 import type { CreateTaskRequest } from "@/lib/model/createTaskRequest";
 
-/** Enough rows for two pages at the current page size. */
-export const DEMO_SEED_COUNT = PAGE_SIZE * 2;
+/** Enough rows for two pages at the default page size (5). */
+export const DEMO_SEED_COUNT = DEFAULT_PAGE_SIZE * 2;
 
 const DEMO_PREFIX = "[Demo]";
 
@@ -54,7 +54,7 @@ export function DemoSeedTasksButton({ onSeeded }: Props) {
   async function onClick() {
     const ok = window.confirm(
       `Create ${DEMO_SEED_COUNT} sample tasks titled “${DEMO_PREFIX} …”?\n\n` +
-        `This fills about two pages (page size ${PAGE_SIZE}) so you can try pagination. ` +
+        `This fills about two pages at the default page size (${DEFAULT_PAGE_SIZE}) so you can try pagination. ` +
         `Tasks are saved on your account — delete them anytime.`
     );
     if (!ok) return;
@@ -90,7 +90,7 @@ export function DemoSeedTasksButton({ onSeeded }: Props) {
       </p>
       <p className="mt-1 text-sm text-amber-900/80 dark:text-amber-100/80">
         Showcase pagination without typing: adds {DEMO_SEED_COUNT} sample tasks
-        (about two pages of {PAGE_SIZE}). Titles start with{" "}
+        (about two pages at {DEFAULT_PAGE_SIZE} per page). Titles start with{" "}
         <span className="font-mono text-xs">{DEMO_PREFIX}</span>.
       </p>
       <button
