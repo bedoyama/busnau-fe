@@ -133,7 +133,17 @@ export default function HomePage() {
         </div>
 
         <p className="mt-12 text-xs text-zinc-500">
-          Demo portfolio app · feedback welcome after you sign in
+          Demo portfolio app ·{" "}
+          <a
+            href="https://www.bedoyarama.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-zinc-700 underline-offset-4 hover:underline dark:text-zinc-300"
+          >
+            bedoyarama.com
+          </a>
+          {" · "}
+          feedback welcome after you sign in
         </p>
       </main>
     </div>
