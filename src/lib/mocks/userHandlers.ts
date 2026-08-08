@@ -76,6 +76,18 @@ export const userHandlers = [
     return new HttpResponse(null, { status: 204 });
   }),
 
+  // Feedback is emailed in prod; mock accepts without Resend
+  http.post("*/api/feedback", async ({ request }) => {
+    const body = (await request.json()) as { message?: string };
+    if (!body?.message || !String(body.message).trim()) {
+      return HttpResponse.json(
+        { error: "Validation failed", details: { message: "Required" } },
+        { status: 400 }
+      );
+    }
+    return new HttpResponse(null, { status: 204 });
+  }),
+
   http.get("*/api/users/me", ({ request }) => {
     const session = resolveSessionUser(request);
     if (!session) {

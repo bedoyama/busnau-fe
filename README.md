@@ -69,6 +69,7 @@ No Java/Postgres required. Mock login: any password; username **`admin`** → AD
 | `/login`, `/register` | Auth |
 | `/tasks` | Task CRUD, status/date filters, Created/Updated (plan-v3 Instant) |
 | `/account` | Profile, change password, **log out everywhere** |
+| `/feedback` | Send feedback (emailed via API Resend) |
 | `/admin/users` | ADMIN only |
 | `/testhandlers` | MSW smoke (dev nav only; URL still works if you know it) |
 

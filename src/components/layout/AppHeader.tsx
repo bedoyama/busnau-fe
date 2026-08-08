@@ -38,6 +38,12 @@ export function AppHeader({ title }: Props) {
           >
             Account
           </Link>
+          <Link
+            href="/feedback"
+            className="text-zinc-600 underline-offset-4 hover:underline dark:text-zinc-400"
+          >
+            Feedback
+          </Link>
           {isAdmin && (
             <Link
               href="/admin/users"
