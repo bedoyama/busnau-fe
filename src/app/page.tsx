@@ -87,7 +87,7 @@ export default function HomePage() {
         <p className="mt-3 max-w-xl text-zinc-600 dark:text-zinc-400">
           {status === "authenticated"
             ? "Jump into tasks, manage your account, or (if you are an admin) manage users."
-            : "Sign in to manage tasks. In mock mode, use any password; username admin unlocks the admin area."}
+            : "A simple task manager demo. Create an account or sign in to add tasks, track due dates, and try the app."}
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
@@ -133,8 +133,7 @@ export default function HomePage() {
         </div>
 
         <p className="mt-12 text-xs text-zinc-500">
-          Local run: mock API by default · see{" "}
-          <code className="font-mono">docs/LOCAL.md</code>
+          Demo portfolio app · feedback welcome after you sign in
         </p>
       </main>
     </div>
