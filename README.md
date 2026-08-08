@@ -47,6 +47,7 @@ Avoid `npm install` so lockfiles do not diverge.
 | Doc | Purpose |
 |-----|---------|
 | [docs/LOCAL.md](./docs/LOCAL.md) | Dual-mode (MSW vs API), env, full smoke checklist |
+| [docs/DEPLOY-CHEAP.md](./docs/DEPLOY-CHEAP.md) | Vercel FE + Railway API + Neon (cheap public stack) |
 | [docs/plan-v1.md](./docs/plan-v1.md) | Original roadmap / PR checklist |
 | [docs/plan-v2-align-api.md](./docs/plan-v2-align-api.md) | Align FE to busnau-api plan-v3 (done) |
 
