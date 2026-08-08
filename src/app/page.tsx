@@ -22,7 +22,7 @@ export default function HomePage() {
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-4 px-4 py-4">
           <div>
             <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-              Busnau
+              Büsnau
             </p>
             <p className="text-xs text-zinc-500">Task manager</p>
           </div>
