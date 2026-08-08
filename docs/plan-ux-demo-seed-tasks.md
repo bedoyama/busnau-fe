@@ -57,5 +57,5 @@
 
 | # | Status |
 |---|--------|
-| 1 | ready to commit |
-| 2 | pending |
+| 1 | done (`0089a3f`) |
+| 2 | ready to commit |

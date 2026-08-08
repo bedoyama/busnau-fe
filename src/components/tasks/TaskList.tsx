@@ -11,6 +11,7 @@ import {
 } from "@/hooks/useTasksQuery";
 import type { Task } from "@/lib/model/task";
 import { CreateTaskForm } from "./CreateTaskForm";
+import { DemoSeedTasksButton } from "./DemoSeedTasksButton";
 
 function formatDueDate(dueDate: Task["dueDate"]): string {
   if (!dueDate) return "—";
@@ -302,6 +303,13 @@ export function TaskList() {
     <div className="w-full">
       <CreateTaskForm
         onCreated={() => {
+          setPage(0);
+          setEditingId(null);
+        }}
+      />
+
+      <DemoSeedTasksButton
+        onSeeded={() => {
           setPage(0);
           setEditingId(null);
         }}
