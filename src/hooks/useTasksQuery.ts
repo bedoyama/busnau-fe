@@ -21,7 +21,8 @@ export const taskKeys = {
   }) => [...taskKeys.all, "list", filters] as const,
 };
 
-const PAGE_SIZE = 10;
+/** Demo-friendly page size so pagination appears after a handful of tasks. */
+const PAGE_SIZE = 5;
 
 /** Status filter is client-side on the current page (date-range API has no completed param). */
 function filterPageByStatus(page: PageTask, status: StatusFilter): PageTask {
